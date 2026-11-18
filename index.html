@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="fr" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="description" content="Studiom, studio d'applications et de jeux mobiles à Ouagadougou : Merge it et Pouls.">
+<title>Studiom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one screen per tab (Accueil, Projets, Le studio, Contact). Projets = grid of app icons; tapping one opens that project's own screen. */
+:root {
+  --bg: #f4f8fd; --surface: #ffffff; --ink: #0c2340; --muted: #4d6382; --line: #d5e1f0;
+  --brand: #0d47a1; --brand-ink: #ffffff; --sun: #ffd54f; --sun-ink: #3b2a00;
+  --board: #0d47a1; --cell: #5f93c6;
+  --t2: #bbdefb; --t2i: #0d47a1; --t4: #90caf9; --t4i: #0d47a1; --t8: #64b5f6; --t8i: #ffffff;
+  --t16: #42a5f5; --t16i: #ffffff; --t32: #2196f3; --t32i: #ffffff; --t64: #1e88e5; --t64i: #ffffff;
+  --font-display: "Space Grotesk", "Segoe UI", Arial, sans-serif;
+  --font-body: "Inter", "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1626; --surface: #112038; --ink: #e8f0fb; --muted: #9bb0cc; --line: #223756;
+    --brand: #64b5f6; --brand-ink: #08203d; --board: #0b2a52; --cell: #1d4676;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1626; --surface: #112038; --ink: #e8f0fb; --muted: #9bb0cc; --line: #223756;
+  --brand: #64b5f6; --brand-ink: #08203d; --board: #0b2a52; --cell: #1d4676;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font: 16px/1.6 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+a { color: var(--brand); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+main { flex: 1; min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; text-wrap: balance; margin: 0; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; padding-block: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.logo { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
+.logo b { color: var(--brand); }
+nav.tabs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+nav.tabs a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; padding: 8px 14px; border-radius: 999px; }
+nav.tabs a:hover { color: var(--ink); }
+nav.tabs a[aria-current="page"] { background: var(--brand); color: var(--brand-ink); }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin-left: 8px; }
+.lang button { border: 0; background: transparent; color: var(--muted); font: 600 13px var(--font-body); padding: 6px 12px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--sun); color: var(--sun-ink); }
+
+.view { padding-block: 40px 56px; }
+.eyebrow { font: 600 13px var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand); margin-bottom: 14px; }
+.view > h2, .page-h { font-size: clamp(30px, 5vw, 46px); letter-spacing: -0.02em; margin-bottom: 12px; }
+.sub { color: var(--muted); max-width: 56ch; margin: 0 0 28px; }
+
+/* Accueil */
+.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }
+.hero h1 { font-size: clamp(38px, 6vw, 64px); letter-spacing: -0.03em; }
+.hero h1 em { font-style: normal; background: var(--sun); color: var(--sun-ink); padding: 0 10px; border-radius: 10px; }
+.hero p.lead { color: var(--muted); font-size: 18px; max-width: 46ch; margin: 20px 0 28px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--brand); color: var(--brand-ink); text-decoration: none; font-weight: 600; padding: 13px 22px; border-radius: 12px; box-shadow: 0 4px 0 rgba(0,0,0,.22); transition: transform .1s, box-shadow .1s; border: 0; font-size: 16px; cursor: pointer; font-family: var(--font-body); }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.22); }
+.btn.sun { background: var(--sun); color: var(--sun-ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.board { background: var(--board); border-radius: 22px; padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 380px; margin-left: auto; width: 100%; box-shadow: 0 14px 0 -6px rgba(0,0,0,.18); }
+.cell { aspect-ratio: 1; border-radius: 12px; background: var(--cell); display: grid; place-items: center; font: 700 clamp(18px, 4vw, 28px) var(--font-display); }
+.cell.v2 { background: var(--t2); color: var(--t2i); } .cell.v4 { background: var(--t4); color: var(--t4i); }
+.cell.v8 { background: var(--t8); color: var(--t8i); } .cell.v16 { background: var(--t16); color: var(--t16i); }
+.cell.v32 { background: var(--t32); color: var(--t32i); } .cell.v64 { background: var(--t64); color: var(--t64i); }
+.cell.v128 { background: var(--sun); color: var(--sun-ink); }
+@media (prefers-reduced-motion: no-preference) { .cell.pop { animation: pop .35s ease; } }
+@keyframes pop { 0% { transform: scale(.6); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+/* Projets : icônes */
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 28px 20px; margin-top: 12px; }
+.icon-btn { display: flex; flex-direction: column; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); text-align: center; }
+.icon-btn svg { width: 104px; height: 104px; border-radius: 24px; box-shadow: 0 6px 0 rgba(0,0,0,.18); transition: transform .12s; }
+.icon-btn:hover svg { transform: translateY(-3px); }
+.icon-btn:active svg { transform: translateY(2px); }
+.icon-btn span { font: 600 16px var(--font-display); }
+
+/* Détail projet */
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; margin-bottom: 24px; }
+.back:hover { color: var(--ink); }
+.detail { display: grid; grid-template-columns: 200px 1fr; gap: 36px; align-items: start; }
+.detail .big svg { width: 100%; max-width: 200px; aspect-ratio: 1; height: auto; border-radius: 44px; box-shadow: 0 10px 0 rgba(0,0,0,.18); }
+.detail h2 { font-size: clamp(28px, 4.4vw, 42px); letter-spacing: -0.02em; margin-bottom: 4px; }
+.detail .by { color: var(--muted); margin: 0 0 18px; }
+.detail p.desc { color: var(--ink); max-width: 60ch; margin: 0 0 18px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.tags span { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); }
+.feat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 8px 0 28px; }
+.feat div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; min-width: 0; }
+.feat h3 { font-size: 17px; margin-bottom: 6px; }
+.feat p { margin: 0; color: var(--muted); font-size: 15px; }
+.schools { list-style: none; padding: 0; margin: 0 0 28px; border-top: 1px solid var(--line); max-width: 520px; }
+.schools li { padding: 11px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+.schools li span:last-child { color: var(--muted); font-size: 14px; text-align: right; }
+.h4 { font: 600 13px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+/* Le studio */
+.about { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.about p { color: var(--muted); margin: 0 0 14px; max-width: 56ch; }
+.facts { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+.facts li { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.facts li span:first-child { color: var(--muted); }
+.facts li span:last-child { font-weight: 600; text-align: right; }
+
+/* Contact */
+.contact-card { background: var(--brand); color: var(--brand-ink); border-radius: 22px; padding: 36px; display: flex; flex-direction: column; gap: 18px; align-items: flex-start; max-width: 620px; }
+.contact-card p { margin: 0; opacity: .92; }
+.contact-card code { font: 600 clamp(15px, 3.6vw, 20px) var(--font-body); background: rgba(255,255,255,.16); padding: 12px 18px; border-radius: 12px; user-select: all; word-break: break-all; }
+.contact-card button { background: var(--sun); color: var(--sun-ink); border: 0; border-radius: 10px; font: 600 15px var(--font-body); padding: 10px 16px; cursor: pointer; }
+
+footer { border-top: 1px solid var(--line); padding-block: 24px 36px; display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; color: var(--muted); font-size: 14px; }
+footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+footer a { color: var(--muted); }
+
+@media (max-width: 760px) {
+  .hero, .about { grid-template-columns: 1fr; }
+  .detail { grid-template-columns: 1fr; gap: 22px; }
+  .detail .big svg { max-width: 120px; border-radius: 28px; }
+  .feat { grid-template-columns: 1fr; }
+  .board { margin: 0; max-width: 320px; }
+  .contact-card { padding: 24px; }
+  .view { padding-block: 28px 40px; }
+}
+</style>
+<style>body{margin:0}img,svg{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<!-- Icônes d'applications (SVG intégrés, remplaçables par les vraies icônes) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ico-merge" viewBox="0 0 100 100">
+      <defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#90caf9"/><stop offset="1" stop-color="#1565c0"/></linearGradient></defs>
+      <rect width="100" height="100" fill="url(#gm)"/>
+      <rect x="14" y="14" width="34" height="34" rx="8" fill="#bbdefb"/><text x="31" y="38" font-family="Arial,sans-serif" font-weight="700" font-size="20" text-anchor="middle" fill="#0d47a1">2</text>
+      <rect x="52" y="14" width="34" height="34" rx="8" fill="#42a5f5"/><text x="69" y="38" font-family="Arial,sans-serif" font-weight="700" font-size="20" text-anchor="middle" fill="#fff">16</text>
+      <rect x="14" y="52" width="34" height="34" rx="8" fill="#2196f3"/><text x="31" y="76" font-family="Arial,sans-serif" font-weight="700" font-size="20" text-anchor="middle" fill="#fff">32</text>
+      <rect x="52" y="52" width="34" height="34" rx="8" fill="#ffd54f"/><text x="69" y="76" font-family="Arial,sans-serif" font-weight="700" font-size="17" text-anchor="middle" fill="#3b2a00">128</text>
+    </symbol>
+    <symbol id="ico-pouls" viewBox="0 0 100 100">
+      <defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26a69a"/><stop offset="1" stop-color="#00695c"/></linearGradient></defs>
+      <rect width="100" height="100" fill="url(#gp)"/>
+      <polyline fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" points="10,54 32,54 40,54 49,24 60,80 69,44 75,54 90,54"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#accueil">Studio<b>m</b></a>
+    <nav class="tabs" aria-label="Menu">
+      <a href="#accueil" data-tab="accueil" data-i="nav_home"></a>
+      <a href="#projets" data-tab="projets" data-i="nav_projects"></a>
+      <a href="#studio" data-tab="studio" data-i="nav_about"></a>
+      <a href="#contact" data-tab="contact" data-i="nav_contact"></a>
+      <div class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" id="l-fr" aria-pressed="true">FR</button>
+        <button type="button" id="l-en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ACCUEIL -->
+    <section class="view" id="v-accueil">
+      <div class="hero">
+        <div>
+          <p class="eyebrow" data-i="eyebrow"></p>
+          <h1 data-i-html="h1"></h1>
+          <p class="lead" data-i="lead"></p>
+          <div class="actions"><a class="btn" href="#projets" data-i="cta_projects"></a></div>
+        </div>
+        <div class="board" id="board" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- PROJETS : icônes seulement -->
+    <section class="view" id="v-projets" hidden>
+      <h2 data-i="projects_h"></h2>
+      <p class="sub" data-i="projects_sub"></p>
+      <div class="icons">
+        <a class="icon-btn" href="#projet-merge-it"><svg viewBox="0 0 100 100" role="img" aria-label="Merge it"><use href="#ico-merge"/></svg><span>Merge it</span></a>
+        <a class="icon-btn" href="#projet-pouls"><svg viewBox="0 0 100 100" role="img" aria-label="Pouls"><use href="#ico-pouls"/></svg><span>Pouls</span></a>
+      </div>
+    </section>
+
+    <!-- PROJET : Merge it -->
+    <section class="view" id="v-projet-merge-it" hidden>
+      <a class="back" href="#projets" data-i="back"></a>
+      <div class="detail">
+        <div class="big"><svg viewBox="0 0 100 100" role="img" aria-label="Merge it"><use href="#ico-merge"/></svg></div>
+        <div>
+          <h2>Merge it</h2>
+          <p class="by" data-i="m_sub"></p>
+          <p class="desc" data-i="m_p"></p>
+          <div class="tags"><span data-i="m_tag1"></span><span data-i="m_tag2"></span><span data-i="m_tag3"></span><span data-i="m_tag4"></span></div>
+          <div class="feat">
+            <div><h3 data-i="f1_t"></h3><p data-i="f1_p"></p></div>
+            <div><h3 data-i="f2_t"></h3><p data-i="f2_p"></p></div>
+            <div><h3 data-i="f3_t"></h3><p data-i="f3_p"></p></div>
+          </div>
+          <a class="btn" href="https://play.google.com/store/apps/details?id=com.studiom.numbermerge" target="_blank" rel="noopener" data-i="m_cta"></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJET : Pouls -->
+    <section class="view" id="v-projet-pouls" hidden>
+      <a class="back" href="#projets" data-i="back"></a>
+      <div class="detail">
+        <div class="big"><svg viewBox="0 0 100 100" role="img" aria-label="Pouls"><use href="#ico-pouls"/></svg></div>
+        <div>
+          <h2>Pouls</h2>
+          <p class="by" data-i="p_sub"></p>
+          <p class="desc" data-i="p_p"></p>
+          <div class="tags"><span data-i="p_tag1"></span><span data-i="p_tag2"></span><span data-i="p_tag3"></span></div>
+          <p class="h4" data-i="p_schools"></p>
+          <ul class="schools">
+            <li><span>FSS Cotonou</span><span>Bénin</span></li>
+            <li><span>FSS Lomé</span><span>Togo</span></li>
+            <li><span>UFR/SDS Ouagadougou</span><span>Burkina Faso</span></li>
+            <li><span>INSSA Bobo-Dioulasso</span><span>Burkina Faso</span></li>
+            <li><span>UFR/SDS Ouahigouya</span><span>Burkina Faso</span></li>
+          </ul>
+          <a class="btn" href="https://pouls-ca330.web.app" target="_blank" rel="noopener" data-i="p_cta"></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- LE STUDIO -->
+    <section class="view" id="v-studio" hidden>
+      <div class="about">
+        <div>
+          <h2 class="page-h" data-i="about_h"></h2>
+          <p data-i="about_p1"></p>
+          <p data-i="about_p2"></p>
+        </div>
+        <ul class="facts">
+          <li><span data-i="fact1_k"></span><span data-i="fact1_v"></span></li>
+          <li><span data-i="fact2_k"></span><span data-i="fact2_v"></span></li>
+          <li><span data-i="fact3_k"></span><span data-i="fact3_v"></span></li>
+          <li><span data-i="fact4_k"></span><span data-i="fact4_v"></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="view" id="v-contact" hidden>
+      <h2 class="page-h" data-i="contact_h"></h2>
+      <p class="sub" data-i="contact_p"></p>
+      <div class="contact-card">
+        <code id="mail"></code>
+        <button type="button" id="copy" data-i="copy"></button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 Studiom</span>
+    <nav>
+      <a href="privacy-policy.html" data-i="privacy"></a>
+      <a href="delete-data.html" data-i="delete"></a>
+    </nav>
+  </footer>
+</div>
+
+<script>
+var CONTACT_EMAIL = "studiom1276@gmail.com";
+
+var T = {
+  fr: {
+    nav_home: "Accueil", nav_projects: "Projets", nav_about: "Le studio", nav_contact: "Contact",
+    eyebrow: "Studio d'applications et de jeux mobiles · Ouagadougou",
+    h1: "Simples à prendre en main, <em>durs à lâcher.</em>",
+    lead: "Studiom crée des jeux et des applications pour Android et le web.",
+    cta_projects: "Voir nos projets",
+    projects_h: "Nos projets",
+    projects_sub: "Touche une application pour voir sa description.",
+    back: "← Projets",
+    m_sub: "Jeu Android · par Studiom",
+    m_p: "Glisse les tuiles, fusionne les nombres identiques et vise 2048, puis bien au-delà. Progresse de niveau en niveau, relève le défi du jour et grimpe dans le classement de la semaine.",
+    m_tag1: "Puzzle", m_tag2: "Android", m_tag3: "Gratuit", m_tag4: "11 langues",
+    m_cta: "Télécharger sur Google Play",
+    f1_t: "Défi du jour", f1_p: "Un nouveau défi chaque jour, avec des récompenses qui augmentent si tu reviens.",
+    f2_t: "Amis et classement", f2_p: "Ajoute des amis avec ton code, envoie-leur des cadeaux, lance un duel et vise le haut du classement.",
+    f3_t: "Boosters", f3_p: "Annule un coup, nettoie une tuile ou tente une seconde chance quand la partie semble perdue.",
+    p_sub: "Application web · par Studiom",
+    p_p: "Des cours structurés et des QCM corrigés pour réviser un peu chaque jour, avec un objectif quotidien et une série de jours. Choisis ton école et ton année : le programme s'adapte.",
+    p_tag1: "Application web", p_tag2: "Français", p_tag3: "Gratuit",
+    p_schools: "Disponible pour 5 universités",
+    p_cta: "Ouvrir Pouls",
+    about_h: "Le studio",
+    about_p1: "Studiom est un petit studio indépendant basé à Ouagadougou, au Burkina Faso. Nous concevons, développons et publions nos projets nous-mêmes.",
+    about_p2: "Nous améliorons nos applications à chaque version, en nous appuyant sur les retours des utilisateurs.",
+    fact1_k: "Fondé", fact1_v: "2026",
+    fact2_k: "Basé à", fact2_v: "Ouagadougou, Burkina Faso",
+    fact3_k: "Plateformes", fact3_v: "Android, web",
+    fact4_k: "Projets", fact4_v: "Merge it, Pouls",
+    contact_h: "Une question, une idée ?",
+    contact_p: "Écris-nous, nous lisons tous les messages.",
+    copy: "Copier l'adresse", copied: "Adresse copiée",
+    privacy: "Politique de confidentialité", delete: "Suppression des données"
+  },
+  en: {
+    nav_home: "Home", nav_projects: "Projects", nav_about: "Studio", nav_contact: "Contact",
+    eyebrow: "Mobile app and game studio · Ouagadougou",
+    h1: "Easy to pick up, <em>hard to put down.</em>",
+    lead: "Studiom makes games and apps for Android and the web.",
+    cta_projects: "See our projects",
+    projects_h: "Our projects",
+    projects_sub: "Tap an app to see its description.",
+    back: "← Projects",
+    m_sub: "Android game · by Studiom",
+    m_p: "Swipe tiles, merge matching numbers and aim for 2048 and beyond. Level up, take on the daily challenge and climb the weekly leaderboard.",
+    m_tag1: "Puzzle", m_tag2: "Android", m_tag3: "Free", m_tag4: "11 languages",
+    m_cta: "Get it on Google Play",
+    f1_t: "Daily challenge", f1_p: "A new challenge every day, with rewards that grow when you come back.",
+    f2_t: "Friends and leaderboard", f2_p: "Add friends with your code, send them gifts, start a duel and aim for the top of the board.",
+    f3_t: "Boosters", f3_p: "Undo a move, clear a tile or take a second chance when the game looks lost.",
+    p_sub: "Web app · by Studiom",
+    p_p: "Structured courses and corrected multiple-choice questions to revise a little every day, with a daily goal and a day streak. Pick your school and year: the programme adapts.",
+    p_tag1: "Web app", p_tag2: "French", p_tag3: "Free",
+    p_schools: "Available for 5 universities",
+    p_cta: "Open Pouls",
+    about_h: "The studio",
+    about_p1: "Studiom is a small independent studio based in Ouagadougou, Burkina Faso. We design, build and publish our projects ourselves.",
+    about_p2: "We improve our apps with every release, guided by user feedback.",
+    fact1_k: "Founded", fact1_v: "2026",
+    fact2_k: "Based in", fact2_v: "Ouagadougou, Burkina Faso",
+    fact3_k: "Platforms", fact3_v: "Android, web",
+    fact4_k: "Projects", fact4_v: "Merge it, Pouls",
+    contact_h: "A question or an idea?",
+    contact_p: "Write to us, we read every message.",
+    copy: "Copy address", copied: "Address copied",
+    privacy: "Privacy policy", delete: "Data deletion"
+  }
+};
+var lang = "fr";
+
+function setLang(l) {
+  lang = l;
+  var d = T[l];
+  document.documentElement.lang = l;
+  document.querySelectorAll("[data-i]").forEach(function (e) { e.textContent = d[e.getAttribute("data-i")]; });
+  document.querySelectorAll("[data-i-html]").forEach(function (e) { e.innerHTML = d[e.getAttribute("data-i-html")]; });
+  document.getElementById("mail").textContent = CONTACT_EMAIL;
+  document.getElementById("l-fr").setAttribute("aria-pressed", l === "fr");
+  document.getElementById("l-en").setAttribute("aria-pressed", l === "en");
+  try { localStorage.setItem("studiom_lang", l); } catch (e) {}
+}
+document.getElementById("l-fr").onclick = function () { setLang("fr"); };
+document.getElementById("l-en").onclick = function () { setLang("en"); };
+document.getElementById("copy").onclick = function () {
+  var b = this, ok = function () { b.textContent = T[lang].copied; setTimeout(function () { b.textContent = T[lang].copy; }, 1800); };
+  try { navigator.clipboard.writeText(CONTACT_EMAIL).then(ok, function () { sel(); }); } catch (e) { sel(); }
+  function sel() { var r = document.createRange(); r.selectNodeContents(document.getElementById("mail")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+};
+var start = "fr";
+try { start = localStorage.getItem("studiom_lang") || "fr"; } catch (e) {}
+setLang(start);
+
+// Un écran par onglet, selon le #hash. Les fiches de projet gardent l'onglet « Projets » actif.
+var views = ["accueil", "projets", "projet-merge-it", "projet-pouls", "studio", "contact"];
+function route() {
+  var h = (location.hash || "#accueil").slice(1);
+  if (views.indexOf(h) < 0) h = "accueil";
+  views.forEach(function (v) { document.getElementById("v-" + v).hidden = v !== h; });
+  var tab = h.indexOf("projet-") === 0 ? "projets" : h;
+  document.querySelectorAll("nav.tabs a[data-tab]").forEach(function (a) {
+    if (a.getAttribute("data-tab") === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route();
+
+// Plateau décoratif de l'accueil.
+var frames = [
+  [2,4,0,8, 0,16,32,0, 4,0,64,128, 0,2,0,0],
+  [2,4,2,8, 0,16,32,0, 4,0,64,128, 0,0,0,2],
+  [2,4,0,8, 2,16,32,0, 4,0,64,128, 0,0,2,0]
+];
+var board = document.getElementById("board"), fi = 0;
+function draw() {
+  var f = frames[fi], html = "";
+  for (var i = 0; i < 16; i++) html += '<div class="cell' + (f[i] ? " v" + f[i] : "") + '">' + (f[i] || "") + "</div>";
+  board.innerHTML = html;
+  var prev = frames[(fi + frames.length - 1) % frames.length];
+  board.querySelectorAll(".cell").forEach(function (c, i) { if (f[i] && !prev[i]) c.classList.add("pop"); });
+}
+draw();
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  setInterval(function () { fi = (fi + 1) % frames.length; draw(); }, 1800);
+}
+</script>
+</body>
+</html>
