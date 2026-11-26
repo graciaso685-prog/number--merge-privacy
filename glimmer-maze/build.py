@@ -7,7 +7,8 @@ import hashlib, pathlib, re
 
 here = pathlib.Path(__file__).parent
 game = (here / 'src' / 'game.html').read_text(encoding='utf-8')
-version = hashlib.sha1(game.encode()).hexdigest()[:10]
+manifest = (here / 'manifest.webmanifest').read_bytes()
+version = hashlib.sha1(game.encode() + manifest).hexdigest()[:10]  # change si le jeu ou le manifeste change
 
 head = """<!doctype html>
 <html lang="en">
