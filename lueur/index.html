@@ -143,27 +143,27 @@ details .rules{margin-top:10px}
   // Boutique : uniquement de la décoration, aucun avantage en jeu
   const CATALOG = {
     lamps: [
-      { id: 'ambre', price: 0, color: '#ffc56b', n: { fr: 'Ambre', en: 'Amber', es: 'Ámbar', pt: 'Âmbar', de: 'Bernstein' } },
-      { id: 'lune', price: 25, color: '#e8ecff', n: { fr: 'Lune', en: 'Moon', es: 'Luna', pt: 'Lua', de: 'Mond' } },
-      { id: 'glacier', price: 50, color: '#8fd3ff', n: { fr: 'Glacier', en: 'Glacier', es: 'Glaciar', pt: 'Geleira', de: 'Gletscher' } },
-      { id: 'lilas', price: 80, color: '#c6a8ff', n: { fr: 'Lilas', en: 'Lilac', es: 'Lila', pt: 'Lilás', de: 'Flieder' } },
-      { id: 'rose', price: 120, color: '#ff9ad5', n: { fr: 'Rose', en: 'Rose', es: 'Rosa', pt: 'Rosa', de: 'Rosé' } },
-      { id: 'soleil', price: 160, color: '#fff27a', n: { fr: 'Soleil', en: 'Sun', es: 'Sol', pt: 'Sol', de: 'Sonne' } },
-      { id: 'prisme', price: 300, color: '#ffc56b', prism: true, css: 'linear-gradient(135deg,#ffc56b,#8fd3ff,#c6a8ff,#ff9ad5)', glow: '#c6a8ff', n: { fr: 'Prisme', en: 'Prism', es: 'Prisma', pt: 'Prisma', de: 'Prisma' } }
+      { id: 'ambre', price: 0, color: '#ffc56b', n: { fr: 'Ambre', en: 'Amber', es: 'Ámbar', pt: 'Âmbar', de: 'Bernstein', ru: 'Янтарь', zh: '琥珀', mn: 'Хув' } },
+      { id: 'lune', price: 25, color: '#e8ecff', n: { fr: 'Lune', en: 'Moon', es: 'Luna', pt: 'Lua', de: 'Mond', ru: 'Луна', zh: '月光', mn: 'Сар' } },
+      { id: 'glacier', price: 50, color: '#8fd3ff', n: { fr: 'Glacier', en: 'Glacier', es: 'Glaciar', pt: 'Geleira', de: 'Gletscher', ru: 'Ледник', zh: '冰川', mn: 'Мөсөн гол' } },
+      { id: 'lilas', price: 80, color: '#c6a8ff', n: { fr: 'Lilas', en: 'Lilac', es: 'Lila', pt: 'Lilás', de: 'Flieder', ru: 'Сирень', zh: '丁香', mn: 'Голт бор' } },
+      { id: 'rose', price: 120, color: '#ff9ad5', n: { fr: 'Rose', en: 'Rose', es: 'Rosa', pt: 'Rosa', de: 'Rosé', ru: 'Роза', zh: '玫瑰', mn: 'Ягаан' } },
+      { id: 'soleil', price: 160, color: '#fff27a', n: { fr: 'Soleil', en: 'Sun', es: 'Sol', pt: 'Sol', de: 'Sonne', ru: 'Солнце', zh: '太阳', mn: 'Нар' } },
+      { id: 'prisme', price: 300, color: '#ffc56b', prism: true, css: 'linear-gradient(135deg,#ffc56b,#8fd3ff,#c6a8ff,#ff9ad5)', glow: '#c6a8ff', n: { fr: 'Prisme', en: 'Prism', es: 'Prisma', pt: 'Prisma', de: 'Prisma', ru: 'Призма', zh: '棱镜', mn: 'Призм' } }
     ],
     skins: [
-      { id: 'sk-classique', price: 0, n: { fr: 'Classique', en: 'Classic', es: 'Clásico', pt: 'Clássico', de: 'Klassisch' } },
-      { id: 'sk-renard', price: 40, n: { fr: 'Renard', en: 'Fox', es: 'Zorro', pt: 'Raposa', de: 'Fuchs' } },
-      { id: 'sk-chat', price: 60, n: { fr: 'Chat', en: 'Cat', es: 'Gato', pt: 'Gato', de: 'Katze' } },
-      { id: 'sk-robot', price: 100, n: { fr: 'Robot', en: 'Robot', es: 'Robot', pt: 'Robô', de: 'Roboter' } },
-      { id: 'sk-fantome', price: 180, n: { fr: 'Fantôme', en: 'Ghost', es: 'Fantasma', pt: 'Fantasma', de: 'Geist' } }
+      { id: 'sk-classique', price: 0, n: { fr: 'Classique', en: 'Classic', es: 'Clásico', pt: 'Clássico', de: 'Klassisch', ru: 'Классика', zh: '经典', mn: 'Сонгодог' } },
+      { id: 'sk-renard', price: 40, n: { fr: 'Renard', en: 'Fox', es: 'Zorro', pt: 'Raposa', de: 'Fuchs', ru: 'Лис', zh: '狐狸', mn: 'Үнэг' } },
+      { id: 'sk-chat', price: 60, n: { fr: 'Chat', en: 'Cat', es: 'Gato', pt: 'Gato', de: 'Katze', ru: 'Кот', zh: '猫', mn: 'Муур' } },
+      { id: 'sk-robot', price: 100, n: { fr: 'Robot', en: 'Robot', es: 'Robot', pt: 'Robô', de: 'Roboter', ru: 'Робот', zh: '机器人', mn: 'Робот' } },
+      { id: 'sk-fantome', price: 180, n: { fr: 'Fantôme', en: 'Ghost', es: 'Fantasma', pt: 'Fantasma', de: 'Geist', ru: 'Призрак', zh: '幽灵', mn: 'Сүнс' } }
     ],
     trails: [
-      { id: 'tr-aucune', price: 0, n: { fr: 'Aucune', en: 'None', es: 'Ninguna', pt: 'Nenhum', de: 'Keine' } },
-      { id: 'tr-poussiere', price: 20, n: { fr: 'Poussière', en: 'Dust', es: 'Polvo', pt: 'Poeira', de: 'Staub' } },
-      { id: 'tr-etincelles', price: 60, n: { fr: 'Étincelles', en: 'Sparks', es: 'Chispas', pt: 'Faíscas', de: 'Funken' } },
-      { id: 'tr-petales', price: 90, n: { fr: 'Pétales', en: 'Petals', es: 'Pétalos', pt: 'Pétalas', de: 'Blüten' } },
-      { id: 'tr-etoiles', price: 140, n: { fr: 'Étoiles', en: 'Stars', es: 'Estrellas', pt: 'Estrelas', de: 'Sterne' } }
+      { id: 'tr-aucune', price: 0, n: { fr: 'Aucune', en: 'None', es: 'Ninguna', pt: 'Nenhum', de: 'Keine', ru: 'Нет', zh: '无', mn: 'Байхгүй' } },
+      { id: 'tr-poussiere', price: 20, n: { fr: 'Poussière', en: 'Dust', es: 'Polvo', pt: 'Poeira', de: 'Staub', ru: 'Пыль', zh: '尘土', mn: 'Тоос' } },
+      { id: 'tr-etincelles', price: 60, n: { fr: 'Étincelles', en: 'Sparks', es: 'Chispas', pt: 'Faíscas', de: 'Funken', ru: 'Искры', zh: '火花', mn: 'Оч' } },
+      { id: 'tr-petales', price: 90, n: { fr: 'Pétales', en: 'Petals', es: 'Pétalos', pt: 'Pétalas', de: 'Blüten', ru: 'Лепестки', zh: '花瓣', mn: 'Дэлбээ' } },
+      { id: 'tr-etoiles', price: 140, n: { fr: 'Étoiles', en: 'Stars', es: 'Estrellas', pt: 'Estrelas', de: 'Sterne', ru: 'Звёзды', zh: '星星', mn: 'Одод' } }
     ]
   };
   const SLOT = { lamps: 'lamp', skins: 'skin', trails: 'trail' };
@@ -191,7 +191,10 @@ details .rules{margin-top:10px}
   }
 
   // ---------- Langues ----------
-  const LANGS = ['fr', 'en', 'es', 'pt', 'de'];
+  const LANGS = ['fr', 'en', 'es', 'pt', 'de', 'ru', 'zh', 'mn'];
+  const LANG_LABEL = { fr: 'FR', en: 'EN', es: 'ES', pt: 'PT', de: 'DE', ru: 'RU', zh: '中文', mn: 'MN' };
+  // Pluriel russe : 1 осколок, 2-4 осколка, 5+ осколков
+  const plRu = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
   const I18N = {
     fr: {
       level: n => `Niveau ${n}`, tutorial: `Tutoriel`, spotted: `Repéré !`, lamp: `Lampe`, maze: `Labyrinthe`,
@@ -411,6 +414,138 @@ details .rules{margin-top:10px}
         `Eine begrenzte Zahl an Splittern pro Level, die du verlierst, wenn du erwischt wirst. Ausgeben kannst du sie im Shop.`,
         `Der Akku leert sich bei eingeschalteter Lampe und lädt sich ausgeschaltet wieder auf. Batterien helfen.`,
         `Zu Beginn jedes Levels siehst du das Labyrinth ein paar Sekunden lang: Merk dir den Weg.`
+      ]
+    },
+    ru: {
+      level: n => `Уровень ${n}`, tutorial: `Обучение`, spotted: `Замечен!`, lamp: `Фонарь`, maze: `Лабиринт`,
+      memorize: `Запомни путь`, skip: n => `${n} с · коснись, чтобы пропустить`,
+      tagline: `Найди выход из лабиринта. Фонарь светит на 60° вперёд… и выдаёт тебя охотникам.`,
+      play: `Играть`, playLevel: n => `Играть · уровень ${n}`, tutoBtn: `Обучение`, shopBtn: `Магазин`,
+      summary: (s, st, m) => `<span class="shards">◆ ${s}</span> ${plRu(s, 'осколок', 'осколка', 'осколков')} · ★ ${st} / ${m}`,
+      levelAria: (n, st) => `Уровень ${n}, ${st} ${plRu(st, 'звезда', 'звезды', 'звёзд')}`,
+      howTo: `Как играть`, language: `Язык`,
+      rules: [
+        [`Телефон`, `Веди пальцем по экрану, чтобы идти; переключатель внизу справа включает фонарь.`],
+        [`Клавиатура`, `WASD или стрелки, мышь — направление, пробел — фонарь.`],
+        [`Охотники`, `Красные лучи. Если они тебя увидят, то бросятся к тебе.`],
+        [`Батарея`, `Разряжается, когда фонарь включён, и заряжается, когда выключен. Батарейки дают +40 %.`],
+        [`Осколки`, `Спрятаны в темноте, часто в конце тупиков. На каждом уровне их ограниченное число: собранные больше не появляются. Если тебя поймают, ты их теряешь.`],
+        [`Звёзды`, `Выход, ни разу не замечен и контрольное время. Каждая новая звезда даёт 5 осколков.`]
+      ],
+      winTitle: `Выход!`, starsAria: n => `${n} из 3 звёзд`,
+      exitFound: `Выход найден`, stealth: `Скрытно: ни разу не замечен`, fast: (p, y) => `Быстро: меньше ${p} (ты: ${y})`,
+      gained: (n, b) => `собрано: ${n}${b ? `, +${b} за ${b > 5 ? 'новые звёзды' : 'новую звезду'}` : ''}`,
+      left: n => n ? `На этом уровне ещё ${n} ${plRu(n, 'спрятанный осколок', 'спрятанных осколка', 'спрятанных осколков')}.` : `Все осколки этого уровня найдены.`,
+      replay: n => `Переиграть ${n}`, menu: `Меню`,
+      loseTitle: `Пойман`, loseText: (l, n) => `Охотник поймал тебя на уровне ${l}.` + (n ? ` Ты теряешь ${n} ${plRu(n, 'осколок', 'осколка', 'осколков')}.` : ''),
+      loseTip: `Совет: выключай фонарь, когда приближается красный луч. Твой свет видно издалека.`,
+      retry: `Ещё раз`, pause: `Пауза`, resume: `Продолжить`,
+      shopTitle: `Магазин`, shopIntro: n => `У тебя <span class="shards">◆ ${n}</span> ${plRu(n, 'осколок', 'осколка', 'осколков')}. Всё здесь только для красоты: игра не меняется, охотники видят тебя так же.`,
+      tab_lamps: `Фонари`, tab_skins: `Исследователи`, tab_trails: `Следы`, equipped: `Выбрано`, equip: `Выбрать`, back: `Назад`,
+      steps: c => [
+        c ? `Веди пальцем в любом месте экрана, чтобы идти.` : `Двигайся клавишами WASD или стрелками. Мышь направляет фонарь.`,
+        `Фонарь светит только на 60° вперёд. Подбери осколок ◆ в конце коридора.`,
+        `Внизу патрулирует охотник: видишь его красный свет? Твой фонарь тоже тебя выдаёт. ` + (c ? `Выключи его переключателем внизу справа.` : `Выключи его пробелом.`),
+        `В темноте он видит тебя, только если ты попадёшь в его луч. Дождись, когда он отвернётся, и перейди коридор.`,
+        `Отлично! Включи фонарь, если хочешь, и иди к зелёному выходу.`
+      ],
+      step: (i, n) => `Шаг ${i} / ${n}`, warn: `Осторожно`, good: `Отлично`,
+      pileToast: `Батарейка: +40 % заряда.`,
+      caughtToast: `Тебя заметили! Спокойно: фонарь выключен, дождись, когда охотник отвернётся, и переходи.`,
+      readyTitle: `Готово!`, readyIntro: `Ты знаешь главное. На настоящих уровнях:`,
+      readyList: [
+        `3 звезды за уровень: выход, ни разу не попасться на глаза и уложиться в контрольное время.`,
+        `Ограниченное число осколков на уровне; если тебя поймают, ты их теряешь. Трать их в магазине.`,
+        `Батарея садится, когда фонарь включён, и заряжается, когда выключен. Батарейки помогают.`,
+        `В начале каждого уровня ты несколько секунд видишь лабиринт: запомни путь.`
+      ]
+    },
+    zh: {
+      level: n => `第 ${n} 关`, tutorial: `新手教程`, spotted: `被发现了！`, lamp: `手电`, maze: `迷宫`,
+      memorize: `记住路线`, skip: n => `${n} 秒 · 点击屏幕跳过`,
+      tagline: `找到迷宫的出口。你的手电只照亮前方 60°……同时也会向猎人暴露你的位置。`,
+      play: `开始游戏`, playLevel: n => `开始 · 第 ${n} 关`, tutoBtn: `教程`, shopBtn: `商店`,
+      summary: (s, st, m) => `<span class="shards">◆ ${s}</span> 碎片 · ★ ${st} / ${m}`,
+      levelAria: (n, st) => `第 ${n} 关，${st} 颗星`,
+      howTo: `玩法说明`, language: `语言`,
+      rules: [
+        [`手机`, `在屏幕上滑动手指移动，右下角的开关控制手电。`],
+        [`键盘`, `WASD 或方向键移动，鼠标瞄准，空格键开关手电。`],
+        [`猎人`, `红色光束。一旦看到你，他们就会冲过来。`],
+        [`电量`, `手电打开时耗电，关闭时充电。电池可恢复 40% 电量。`],
+        [`碎片`, `藏在黑暗中，常在死胡同尽头。每关数量有限：捡过的不会再出现。被抓住就会丢失。`],
+        [`星星`, `到达出口、从未被发现、在目标时间内完成。每获得一颗新星奖励 5 个碎片。`]
+      ],
+      winTitle: `逃出来了！`, starsAria: n => `${n}/3 颗星`,
+      exitFound: `找到出口`, stealth: `潜行：从未被发现`, fast: (p, y) => `迅速：少于 ${p}（你：${y}）`,
+      gained: (n, b) => `捡到 ${n} 个${b ? `，新星奖励 +${b}` : ''}`,
+      left: n => n ? `本关还藏着 ${n} 个碎片。` : `本关的碎片已全部找到。`,
+      replay: n => `重玩第 ${n} 关`, menu: `菜单`,
+      loseTitle: `被抓住了`, loseText: (l, n) => `你在第 ${l} 关被猎人抓住了。` + (n ? `失去 ${n} 个碎片。` : ''),
+      loseTip: `提示：红色光束靠近时关掉手电。你的光从远处就能看见。`,
+      retry: `再试一次`, pause: `暂停`, resume: `继续`,
+      shopTitle: `商店`, shopIntro: n => `你有 <span class="shards">◆ ${n}</span> 个碎片。这里的物品都只是装饰：不影响玩法，猎人看你还是一样。`,
+      tab_lamps: `手电`, tab_skins: `探险者`, tab_trails: `拖尾`, equipped: `使用中`, equip: `使用`, back: `返回`,
+      steps: c => [
+        c ? `在屏幕任意位置滑动手指来移动。` : `用 WASD 或方向键移动，鼠标控制手电方向。`,
+        `手电只照亮前方 60°。去走廊尽头捡起碎片 ◆。`,
+        `下方有猎人在巡逻：看到他的红光了吗？你的手电也会暴露你。` + (c ? `用右下角的开关把它关掉。` : `按空格键把它关掉。`),
+        `在黑暗中，只有你走进他的光束，他才能看到你。等他背对你，再穿过走廊。`,
+        `干得好！想开手电就打开，然后前往绿色出口。`
+      ],
+      step: (i, n) => `第 ${i} / ${n} 步`, warn: `小心`, good: `干得好`,
+      pileToast: `捡到电池：电量 +40%。`,
+      caughtToast: `你被发现了！别慌：关掉手电，等他转身背对你，再穿过去。`,
+      readyTitle: `准备好了！`, readyIntro: `你已经掌握了要点。在正式关卡中：`,
+      readyList: [
+        `每关 3 颗星：到达出口、从未被发现、在目标时间内完成。`,
+        `每关碎片数量有限，被抓住就会丢失。碎片可以在商店里使用。`,
+        `手电打开时耗电，关闭时充电。电池能帮上忙。`,
+        `每关开始时，你可以看几秒钟迷宫全貌：记住路线。`
+      ]
+    },
+    mn: {
+      level: n => `${n}-р түвшин`, tutorial: `Сургалт`, spotted: `Илэрлээ!`, lamp: `Чийдэн`, maze: `Төөрдөг байшин`,
+      memorize: `Замаа цээжил`, skip: n => `${n} с · алгасахын тулд дэлгэцэн дээр дар`,
+      tagline: `Төөрдөг байшингаас гарах гарцыг ол. Чийдэн чинь урд талаа 60° гэрэлтүүлдэг… бас анчдад байршлыг чинь илчилдэг.`,
+      play: `Тоглох`, playLevel: n => `Тоглох · ${n}-р түвшин`, tutoBtn: `Сургалт`, shopBtn: `Дэлгүүр`,
+      summary: (s, st, m) => `<span class="shards">◆ ${s}</span> хэлтэрхий · ★ ${st} / ${m}`,
+      levelAria: (n, st) => `${n}-р түвшин, ${st} од`,
+      howTo: `Хэрхэн тоглох вэ`, language: `Хэл`,
+      rules: [
+        [`Гар утас`, `Хуруугаа гулсуулж явна; баруун доод буланд байгаа унтраалгаар чийдэнгээ асаана.`],
+        [`Гар`, `WASD эсвэл сумтай товч, хулганаар чиглүүлнэ, Space товчоор чийдэн.`],
+        [`Анчид`, `Улаан гэрлийн туяа. Чамайг харвал чам руу гүйнэ.`],
+        [`Цэнэг`, `Чийдэн асаалттай үед дуусдаг, унтраалттай үед цэнэглэгддэг. Зай +40% өгнө.`],
+        [`Хэлтэрхий`, `Харанхуйд, ихэвчлэн мухар замын төгсгөлд нуугдсан. Түвшин бүрт хязгаартай: түүсэн хэлтэрхий дахин гарахгүй. Баригдвал алдана.`],
+        [`Од`, `Гарц, хэзээ ч илрээгүй, зорилтот хугацаанд багтсан. Шинэ од бүр 5 хэлтэрхий өгнө.`]
+      ],
+      winTitle: `Гарлаа!`, starsAria: n => `3-аас ${n} од`,
+      exitFound: `Гарц олдлоо`, stealth: `Нууцаар: нэг ч удаа илрээгүй`, fast: (p, y) => `Хурдан: ${p} дотор (чи: ${y})`,
+      gained: (n, b) => `${n} түүсэн${b ? `, шинэ одны төлөө +${b}` : ''}`,
+      left: n => n ? `Энэ түвшинд ${n} хэлтэрхий нуугдсан хэвээр байна.` : `Энэ түвшний бүх хэлтэрхийг оллоо.`,
+      replay: n => `${n}-р түвшинг дахин`, menu: `Цэс`,
+      loseTitle: `Баригдлаа`, loseText: (l, n) => `${l}-р түвшинд анчин чамайг барьлаа.` + (n ? ` Чи ${n} хэлтэрхий алдлаа.` : ''),
+      loseTip: `Зөвлөгөө: улаан туяа ойртоход чийдэнгээ унтраа. Чиний гэрэл холоос харагддаг.`,
+      retry: `Дахин оролдох`, pause: `Түр зогсоох`, resume: `Үргэлжлүүлэх`,
+      shopTitle: `Дэлгүүр`, shopIntro: n => `Чамд <span class="shards">◆ ${n}</span> хэлтэрхий байна. Энд байгаа бүх зүйл зөвхөн гоёл: тоглоомд нөлөөлөхгүй, анчид чамайг адилхан хардаг.`,
+      tab_lamps: `Чийдэн`, tab_skins: `Аялагчид`, tab_trails: `Ул мөр`, equipped: `Сонгосон`, equip: `Сонгох`, back: `Буцах`,
+      steps: c => [
+        c ? `Явахын тулд дэлгэцийн хаана ч хамаагүй хуруугаа гулсуул.` : `WASD эсвэл сумтай товчоор яв. Хулганаар чийдэнгээ чиглүүл.`,
+        `Чийдэн чинь зөвхөн урд талаа 60° гэрэлтүүлдэг. Коридорын төгсгөлд байгаа хэлтэрхийг ◆ ав.`,
+        `Доор анчин эргүүл хийж байна: түүний улаан гэрлийг хар. Чиний чийдэн ч бас чамайг илчилдэг. ` + (c ? `Баруун доод буланд байгаа унтраалгаар унтраа.` : `Space товчоор унтраа.`),
+        `Харанхуйд тэр чамайг зөвхөн туяандаа орвол хардаг. Тэр нуруугаа харуулах хүртэл хүлээгээд коридорыг гатал.`,
+        `Сайн байна! Хүсвэл чийдэнгээ асаагаад ногоон гарц руу яв.`
+      ],
+      step: (i, n) => `Алхам ${i} / ${n}`, warn: `Болгоомжтой`, good: `Сайн байна`,
+      pileToast: `Зай авлаа: цэнэг +40%.`,
+      caughtToast: `Чамайг харчихлаа! Бүү сандар: чийдэнгээ унтраагаад, тэр нуруугаа харуултал хүлээгээд гатал.`,
+      readyTitle: `Бэлэн!`, readyIntro: `Чи гол зүйлийг мэдлээ. Жинхэнэ түвшнүүдэд:`,
+      readyList: [
+        `Түвшин бүрт 3 од: гарц, хэзээ ч илрэхгүй байх, зорилтот хугацаанд багтах.`,
+        `Түвшин бүрт хязгаартай тооны хэлтэрхий, баригдвал алдана. Дэлгүүрт зарцуулна.`,
+        `Чийдэн асаалттай үед цэнэг дуусч, унтраалттай үед цэнэглэгдэнэ. Зай тусална.`,
+        `Түвшин бүрийн эхэнд төөрдөг байшинг хэдэн секунд харна: замаа цээжил.`
       ]
     }
   };
@@ -827,7 +962,7 @@ details .rules{margin-top:10px}
     for (let n = 1; n <= save.unlocked; n++)
       cells += `<button type="button" data-lvl="${n}" class="${n === save.unlocked ? 'cur' : ''}" aria-label="${t('levelAria', n, save.stars[n] || 0)}">${n}<span class="stars">${starHTML(save.stars[n] || 0)}</span><span class="cs">◆ ${save.collected[n] || 0}/${shardQuota(n)}</span></button>`;
     const rules = t('rules').map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
-    const langs = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}">${l.toUpperCase()}</button>`).join('');
+    const langs = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('');
     showScreen(`
       <h1>Lueur</h1>
       <p>${t('tagline')}</p>
