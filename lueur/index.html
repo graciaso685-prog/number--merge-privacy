@@ -75,7 +75,14 @@ details .rules{margin-top:10px}
 #screen .shop button:disabled{opacity:.45;cursor:default}
 #hud .hs{color:#9fe8ff;margin-left:8px}
 #hud .time.late{text-decoration:line-through}
-@media (prefers-reduced-motion:reduce){#alert.on{animation:none}}
+#tip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 80px);left:50%;translate:-50% 0;width:min(360px,calc(100% - 32px));box-sizing:border-box;padding:12px 14px;border-radius:14px;background:rgba(14,13,20,.9);border:1px solid #2c2b35;pointer-events:none;display:flex;flex-direction:column;gap:4px;transition:border-color .2s}
+#tip.warn{border-color:var(--hunter)}
+#tip.good{border-color:var(--exit)}
+#tipStep{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#tipText{margin:0;font-size:14px;line-height:1.45}
+#lampBtn.hint{animation:hint 1.1s ease-out infinite}
+@keyframes hint{from{box-shadow:0 0 0 0 rgba(236,235,242,.75)}to{box-shadow:0 0 0 18px rgba(236,235,242,0)}}
+@media (prefers-reduced-motion:reduce){#alert.on{animation:none}#lampBtn.hint{animation:none;outline:2px solid var(--ink);outline-offset:4px}}
 </style>
 
 <canvas id="game" aria-label="Labyrinthe"></canvas>
@@ -85,6 +92,8 @@ details .rules{margin-top:10px}
   <div id="alert">Repéré !</div>
   <div class="bat"><span id="batLabel">Lampe</span><div class="bat-bar"><div class="bat-fill" id="batFill" style="width:100%"></div></div></div>
 </div>
+
+<div id="tip" hidden><span id="tipStep"></span><p id="tipText"></p></div>
 
 <button id="lampBtn" type="button" role="switch" aria-checked="true" hidden aria-label="Lampe"><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></svg></span></button>
 
@@ -260,6 +269,7 @@ details .rules{margin-top:10px}
   function chaseSpeed() { return Math.min(2.4 + 0.12 * level, 3.5); }
 
   function startLevel() {
+    tutorial = false; $('tip').hidden = true; lampBtn.classList.remove('hint');
     const size = Math.min(7 + level * 2, 19);
     genMaze(size, size);
     player = { x: 1.5, y: 1.5, a: isWall(2, 1) ? Math.PI / 2 : 0, lamp: true, bat: 100 };
@@ -416,6 +426,10 @@ details .rules{margin-top:10px}
       h.timer -= dt;
       if (h.timer <= 0) { h.state = 'patrol'; h.path = []; }
     } else {
+      if (!h.path.length && h.route) {
+        const rp = h.route[h.ri]; h.ri = (h.ri + 1) % h.route.length;
+        h.path = findPath(fl(h.x), fl(h.y), fl(rp.x), fl(rp.y));
+      }
       if (!h.path.length) {
         for (let i = 0; i < 30; i++) {
           const x = 1 + rnd(gw - 2), y = 1 + rnd(gh - 2);
@@ -445,15 +459,15 @@ details .rules{margin-top:10px}
       if (p.taken || Math.hypot(p.x - player.x, p.y - player.y) > 0.55) continue;
       p.taken = true;
       if (p.type === 'shard') { levelShards++; $('hudShards').textContent = '◆ ' + levelShards + '/' + levelTotal; }
-      else player.bat = Math.min(100, player.bat + 40);
+      else { player.bat = Math.min(100, player.bat + 40); if (tutorial) toast('Pile ramassée : +40 % de batterie.', 'good'); }
       try { navigator.vibrate && navigator.vibrate(20); } catch (_) {}
     }
 
     for (const h of hunters) {
       updateHunter(h, dt);
-      if (Math.hypot(h.x - player.x, h.y - player.y) < 0.55) return lose();
+      if (Math.hypot(h.x - player.x, h.y - player.y) < 0.55) return tutorial ? tutorialCaught() : lose();
     }
-    if (fl(player.x) === exit.x && fl(player.y) === exit.y) return win();
+    if (fl(player.x) === exit.x && fl(player.y) === exit.y) return tutorial ? tutorialDone() : win();
 
     shake = Math.max(0, shake - dt * 3);
     alertFlash = Math.max(0, alertFlash - dt * 2);
@@ -461,12 +475,13 @@ details .rules{margin-top:10px}
 
     // HUD
     const s = fl(time);
-    $('time').textContent = fmt(s) + ' / ' + fmt(par);
+    $('time').textContent = tutorial ? fmt(s) : fmt(s) + ' / ' + fmt(par);
     $('time').classList.toggle('late', time > par);
     $('alert').classList.toggle('on', hunters.some(h => h.state === 'chase'));
     const fill = $('batFill');
     fill.style.width = player.bat.toFixed(0) + '%';
     fill.classList.toggle('low', player.bat < 20 || batWarn > 0);
+    if (tutorial) tutorialUpdate(dt);
   }
 
   function starHTML(n) { let h = ''; for (let i = 0; i < 3; i++) h += i < n ? '★' : '<span class="no">★</span>'; return h; }
@@ -528,7 +543,7 @@ details .rules{margin-top:10px}
     showScreen(`
       <h1>Lueur</h1>
       <p>Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.</p>
-      <div class="row"><button type="button" id="play">Jouer · niveau ${save.unlocked}</button><button type="button" class="ghost" id="shopBtn">Lampes</button></div>
+      <div class="row"><button type="button" id="play">${save.tutorial ? `Jouer · niveau ${save.unlocked}` : 'Jouer'}</button><button type="button" class="ghost" id="tutoBtn">Tutoriel</button><button type="button" class="ghost" id="shopBtn">Lampes</button></div>
       <p class="muted"><span class="shards">◆ ${save.shards}</span> éclats · ★ ${total} / ${save.unlocked * 3}</p>
       <div class="levels">${cells}</div>
       <details><summary>Comment jouer</summary>
@@ -541,7 +556,8 @@ details .rules{margin-top:10px}
           <dt>Étoiles</dt><dd>Sortie, jamais repéré, et temps cible battu. Chaque nouvelle étoile rapporte 5 éclats.</dd>
         </dl>
       </details>`);
-    $('play').onclick = () => { level = save.unlocked; startLevel(); };
+    $('play').onclick = () => { if (!save.tutorial) startTutorial(); else { level = save.unlocked; startLevel(); } };
+    $('tutoBtn').onclick = startTutorial;
     $('shopBtn').onclick = shop;
     $('panel').querySelectorAll('[data-lvl]').forEach(b => b.onclick = () => { level = +b.dataset.lvl; startLevel(); });
   }
@@ -570,9 +586,103 @@ details .rules{margin-top:10px}
   function showScreen(html) {
     $('panel').innerHTML = html;
     $('screen').hidden = false;
-    $('hud').hidden = true; $('lampBtn').hidden = true;
+    $('hud').hidden = true; $('lampBtn').hidden = true; $('tip').hidden = true;
+    lampBtn.classList.remove('hint');
     joy = null;
     const b = $('panel').querySelector('button'); if (b) setTimeout(() => b.focus({ preventScroll: true }), 50);
+  }
+
+  // ---------- Tutoriel ----------
+  // Niveau dessiné à la main : couloir → éclat → couloir du chasseur à traverser → pile → sortie
+  const TUTO = [
+    '###############',
+    '#S.....*#######',
+    '#######.#######',
+    '#######.#######',
+    '#.............#',
+    '#######.#######',
+    '#######.#######',
+    '#######..b...E#',
+    '###############'
+  ];
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const TSTEPS = [
+    coarse ? "Glisse ton doigt n'importe où sur l'écran pour avancer." : 'Avance avec ZQSD, WASD ou les flèches. La souris oriente ta lampe.',
+    "Ta lampe n'éclaire qu'à 60° devant toi. Va ramasser l'éclat ◆ au bout du couloir.",
+    'Un chasseur patrouille plus bas : regarde sa lumière rouge. Ta lampe te trahit aussi. ' + (coarse ? "Éteins-la avec l'interrupteur en bas à droite." : 'Éteins-la avec Espace.'),
+    "Dans le noir, il ne te voit que si tu entres dans son faisceau. Attends qu'il te tourne le dos, puis traverse le couloir.",
+    'Bravo ! Rallume si tu veux et rejoins la sortie verte.'
+  ];
+  let tutorial = false, tStep = 0, tToast = 0;
+  const newTutoHunter = () => ({ x: 2.5, y: 4.5, a: 0, state: 'patrol', path: [], repath: 0, timer: 0, last: null, route: [{ x: 13.5, y: 4.5 }, { x: 1.5, y: 4.5 }], ri: 0 });
+
+  function startTutorial() {
+    tutorial = true; level = 1;
+    gh = TUTO.length; gw = TUTO[0].length;
+    grid = TUTO.map(r => Uint8Array.from(r, ch => ch === '#' ? 1 : 0));
+    pickups = [];
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+      const ch = TUTO[y][x];
+      if (ch === 'E') exit = { x, y };
+      if (ch === '*') pickups.push({ x: x + 0.5, y: y + 0.5, type: 'shard' });
+      if (ch === 'b') pickups.push({ x: x + 0.5, y: y + 0.5, type: 'bat' });
+    }
+    player = { x: 1.5, y: 1.5, a: 0, lamp: true, bat: 100 };
+    hunters = [newTutoHunter()];
+    levelShards = 0; levelTotal = 1; spotted = false; par = 999; time = 0; shake = 0;
+    tStep = 0; tToast = 0;
+    revealT = 3 + REVEAL_ZOOM; state = 'reveal';
+    $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false;
+    $('tip').hidden = true; $('tip').dataset.shown = '';
+    $('lvl').textContent = 'Tutoriel'; $('hudShards').textContent = '◆ 0/1';
+    updateLampUI();
+  }
+  function setTip() {
+    $('tip').classList.remove('warn', 'good');
+    $('tipStep').textContent = 'Étape ' + (tStep + 1) + ' / ' + TSTEPS.length;
+    $('tipText').textContent = TSTEPS[tStep];
+  }
+  function toast(text, kind) {
+    $('tip').hidden = false;
+    $('tip').classList.remove('warn', 'good'); $('tip').classList.add(kind);
+    $('tipStep').textContent = kind === 'warn' ? 'Attention' : 'Bien joué';
+    $('tipText').textContent = text;
+    tToast = 3.5;
+  }
+  function tutorialUpdate(dt) {
+    const prev = tStep;
+    if (tStep === 0 && Math.hypot(player.x - 1.5, player.y - 1.5) > 1.5) tStep = 1;
+    if (tStep === 1 && levelShards > 0) tStep = 2;
+    if (tStep === 2 && !player.lamp) tStep = 3;
+    if (player.y > 5.6 && tStep < 4) tStep = 4;
+    if (tToast > 0) { tToast -= dt; if (tToast <= 0) setTip(); }
+    else if (tStep !== prev || !$('tip').dataset.shown) { $('tip').dataset.shown = '1'; $('tip').hidden = false; setTip(); }
+    lampBtn.classList.toggle('hint', tStep === 2 && player.lamp);
+  }
+  function tutorialCaught() {
+    shake = reduceMotion ? 0 : 0.6;
+    try { navigator.vibrate && navigator.vibrate([80, 40, 120]); } catch (_) {}
+    player.x = 7.5; player.y = 2.5; player.a = Math.PI / 2;
+    player.lamp = false; updateLampUI();
+    hunters = [newTutoHunter()];
+    tStep = Math.max(tStep, 3);
+    toast("Il t'a repéré ! Pas de panique : lampe éteinte, attends qu'il te tourne le dos, puis traverse.", 'warn');
+  }
+  function tutorialDone() {
+    state = 'over'; tutorial = false;
+    save.tutorial = true; save.shards += levelShards; persist();
+    showScreen(`
+      <h1 class="win">Prêt&nbsp;!</h1>
+      <p>Tu connais l'essentiel. Dans les vrais niveaux :</p>
+      <ul class="checks">
+        <li><span class="ok">★</span>3 étoiles par niveau : la sortie, ne jamais être repéré, battre le temps cible.</li>
+        <li><span class="shards">◆</span>Un nombre limité d'éclats par niveau, perdus si tu te fais attraper. Ils achètent des lampes.</li>
+        <li><span class="ok">▮</span>La batterie se vide lampe allumée et se recharge éteinte. Les piles aident.</li>
+        <li><span class="ok">◎</span>Au début de chaque niveau, tu vois le labyrinthe quelques secondes : mémorise le chemin.</li>
+      </ul>
+      <div class="row"><button type="button" id="go">Jouer · niveau ${save.unlocked}</button><button type="button" class="ghost" id="home">Menu</button></div>`);
+    $('go').onclick = () => { level = save.unlocked; startLevel(); };
+    $('home').onclick = menu;
   }
 
   // ---------- Rendu ----------
@@ -693,6 +803,17 @@ details .rules{margin-top:10px}
       ctx.fillStyle = h.state === 'chase' ? 'rgba(255,90,69,0.3)' : 'rgba(255,90,69,0.18)';
       polyPath(ctx, h.x, h.y, hCones[i]); ctx.fill();
     });
+
+    // Tutoriel : repère sur l'objectif en cours
+    if (tutorial && state === 'play') {
+      const tg = tStep === 1 ? { x: 7.5, y: 1.5, c: '#9fe8ff' } : tStep === 3 ? { x: 7.5, y: 6.5, c: C.lamp } : tStep === 4 ? { x: exit.x + 0.5, y: exit.y + 0.5, c: C.exit } : null;
+      if (tg) {
+        const ph = reduceMotion ? 0.5 : (now / 900) % 1;
+        ctx.strokeStyle = tg.c; ctx.lineWidth = 2; ctx.globalAlpha = 1 - ph * 0.8;
+        ctx.beginPath(); ctx.arc(sx(tg.x), sy(tg.y), T * (0.35 + ph * 0.45), 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
 
     // Danger : vignette rouge selon le chasseur le plus proche
     let near = Infinity;
