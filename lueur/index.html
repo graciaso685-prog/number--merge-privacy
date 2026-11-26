@@ -88,17 +88,18 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
   const GLOW_NOTICE = 3;                        // distance à laquelle un chasseur remarque la lueur
   const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
 
-  let W = 0, H = 0, DPR = 1, T = 40;
+  let W = 0, H = 0, DPR = 1, T = 40, T0 = 40;
   function resize() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
     for (const c of [cvs, dark]) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
-    T = Math.max(28, Math.min(W, H) / 10);
+    T0 = Math.max(28, Math.min(W, H) / 10); T = T0;
   }
   addEventListener('resize', resize); resize();
 
   let grid, gw, gh, exit, player, hunters = [];
-  let level = 1, state = 'menu', time = 0, shake = 0, alertFlash = 0;
+  let level = 1, state = 'menu', time = 0, shake = 0, alertFlash = 0, revealT = 0;
+  const REVEAL_ZOOM = 0.7; // durée du zoom de retour vers le joueur
   let best = 1;
   try { best = Math.max(1, parseInt(localStorage.getItem('lueur-best') || '1', 10) || 1); } catch (e) {}
 
@@ -226,7 +227,9 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
       hunters.push({ x: c % gw + 0.5, y: ((c / gw) | 0) + 0.5, a: Math.random() * 6.28, state: 'patrol', path: [], repath: 0, timer: 0, last: null });
     }
     time = 0; shake = 0;
-    state = 'play';
+    // Aperçu du labyrinthe éclairé : 4 s au niveau 1, puis de moins en moins (min 1,5 s)
+    revealT = Math.max(1.5, 4 - 0.4 * (level - 1)) + REVEAL_ZOOM;
+    state = 'reveal';
     $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false;
     $('lvl').textContent = 'Niveau ' + level;
     updateLampUI();
@@ -237,6 +240,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
   let mouse = null, joy = null;
   addEventListener('keydown', e => {
     keys.add(e.code);
+    if (state === 'reveal' && !e.repeat) revealT = Math.min(revealT, REVEAL_ZOOM);
     if ((e.code === 'Space' || e.code === 'KeyE') && !e.repeat && state === 'play') { toggleLamp(); e.preventDefault(); }
     if ((e.code === 'Escape' || e.code === 'KeyP') && state === 'play') pause();
     if (e.code === 'Enter' && state !== 'play') { const b = $('panel').querySelector('button'); if (b) b.click(); }
@@ -250,6 +254,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
     if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; }
   });
   cvs.addEventListener('pointerdown', e => {
+    if (state === 'reveal') revealT = Math.min(revealT, REVEAL_ZOOM);
     if (e.pointerType === 'mouse' || joy) return;
     joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
     try { cvs.setPointerCapture(e.pointerId); } catch (_) {}
@@ -459,9 +464,15 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
     ctx.fillStyle = C.void; ctx.fillRect(0, 0, W, H);
     if (!grid) return;
 
+    // k = 0 : vue d'ensemble éclairée, k = 1 : vue normale centrée sur le joueur
+    let k = 1;
+    if (state === 'reveal') { const u = Math.min(1, Math.max(0, 1 - revealT / REVEAL_ZOOM)); k = u * u * (3 - 2 * u); }
+    const fit = Math.min((W - 32) / gw, (H - 200) / gh);
+    T = fit + (T0 - fit) * k;
+    const ccx = gw / 2 + (player.x - gw / 2) * k, ccy = gh / 2 + (player.y - gh / 2) * k;
     const sh = shake * 8;
-    camX = player.x * T - W / 2 + (Math.random() - 0.5) * sh;
-    camY = player.y * T - H / 2 + (Math.random() - 0.5) * sh;
+    camX = ccx * T - W / 2 + (Math.random() - 0.5) * sh;
+    camY = ccy * T - H / 2 + (Math.random() - 0.5) * sh;
 
     // Sol et murs
     const x0 = Math.max(0, fl(camX / T)), x1 = Math.min(gw - 1, fl((camX + W) / T));
@@ -515,7 +526,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
     hunters.forEach((h, i) => { cutCone(h.x, h.y, hCones[i], H_RANGE, 0.9); cutCircle(h.x, h.y, 0.6, 0.55); });
     cutCircle(exit.x + 0.5, exit.y + 0.5, 1.8, 0.55);
 
-    ctx.drawImage(dark, 0, 0, W, H);
+    ctx.globalAlpha = k; ctx.drawImage(dark, 0, 0, W, H); ctx.globalAlpha = 1;
 
     // Teintes de lumière
     if (pCone) { ctx.fillStyle = 'rgba(255,197,107,0.16)'; polyPath(ctx, player.x, player.y, pCone); ctx.fill(); }
@@ -534,6 +545,19 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     }
 
+    // Aperçu : repère du joueur + consigne
+    if (state === 'reveal' && k < 1) {
+      ctx.globalAlpha = 1 - k;
+      ctx.strokeStyle = C.lamp; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sx(player.x), sy(player.y), Math.max(10, T * (0.9 + 0.2 * Math.sin(now / 150))), 0, Math.PI * 2); ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ecebf2'; ctx.font = "800 18px Unbounded, system-ui, sans-serif";
+      ctx.fillText('Mémorise le chemin', W / 2, 62);
+      ctx.fillStyle = '#9a98a8'; ctx.font = "500 13px Inter, system-ui, sans-serif";
+      ctx.fillText(Math.ceil(Math.max(0, revealT - REVEAL_ZOOM)) + ' s · touche l\'écran pour passer', W / 2, 84);
+      ctx.textAlign = 'start'; ctx.globalAlpha = 1;
+    }
+
     // Joystick
     if (joy) {
       ctx.strokeStyle = 'rgba(236,235,242,0.25)'; ctx.lineWidth = 2;
@@ -548,6 +572,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
     if (state === 'play') update(dt);
+    else if (state === 'reveal') { revealT -= dt; if (revealT <= 0) { revealT = 0; state = 'play'; } }
     else shake = Math.max(0, shake - dt * 3);
     render(now);
     requestAnimationFrame(frame);
