@@ -78,6 +78,12 @@ details .rules{margin-top:10px}
 #screen .langs button{padding:6px 10px;font:600 12px var(--body);letter-spacing:.06em}
 #screen .tabs button[aria-pressed="true"],#screen .langs button[aria-pressed="true"]{color:var(--ink);border-color:var(--lamp)}
 .pv{width:34px;height:34px;flex:none;border-radius:50%;background:#0d0c12}
+.ic{display:inline-flex;align-items:center;gap:6px}
+.ic svg{width:15px;height:15px;flex:none}
+.langlist{display:grid;gap:8px}
+#screen .langlist button{align-self:stretch;width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:#17161d;color:var(--ink);border:1.5px solid #2c2b35;border-radius:12px;font:600 16px var(--body);letter-spacing:0;padding:14px 16px}
+#screen .langlist button[aria-pressed="true"]{border-color:var(--lamp)}
+.langlist .code{font:600 11px var(--body);letter-spacing:.08em;color:var(--muted)}
 #hud .hs{color:#9fe8ff;margin-left:8px}
 #hud .time.late{text-decoration:line-through}
 #tip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 80px);left:50%;translate:-50% 0;width:min(360px,calc(100% - 32px));box-sizing:border-box;padding:12px 14px;border-radius:14px;background:rgba(14,13,20,.9);border:1px solid #2c2b35;pointer-events:none;display:flex;flex-direction:column;gap:4px;transition:border-color .2s}
@@ -169,7 +175,7 @@ details .rules{margin-top:10px}
   const SLOT = { lamps: 'lamp', skins: 'skin', trails: 'trail' };
   const DEFAULTS = ['ambre', 'sk-classique', 'tr-aucune'];
   // Progression (sauvegardée dans le navigateur pour ce prototype)
-  let save = { unlocked: 1, stars: {}, shards: 0, collected: {}, owned: DEFAULTS.slice(), lamp: 'ambre', skin: 'sk-classique', trail: 'tr-aucune', lang: null };
+  let save = { unlocked: 1, stars: {}, shards: 0, collected: {}, owned: DEFAULTS.slice(), lamp: 'ambre', skin: 'sk-classique', trail: 'tr-aucune', lang: null, sound: true };
   try {
     const raw = localStorage.getItem('lueur-save');
     if (raw) save = Object.assign(save, JSON.parse(raw));
@@ -193,6 +199,7 @@ details .rules{margin-top:10px}
   // ---------- Langues ----------
   const LANGS = ['fr', 'en', 'es', 'pt', 'de', 'ru', 'zh', 'mn'];
   const LANG_LABEL = { fr: 'FR', en: 'EN', es: 'ES', pt: 'PT', de: 'DE', ru: 'RU', zh: '中文', mn: 'MN' };
+  const LANG_NATIVE = { fr: 'Français', en: 'English', es: 'Español', pt: 'Português (Brasil)', de: 'Deutsch', ru: 'Русский', zh: '中文（简体）', mn: 'Монгол' };
   // Pluriel russe : 1 осколок, 2-4 осколка, 5+ осколков
   const plRu = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
   const I18N = {
@@ -203,7 +210,7 @@ details .rules{margin-top:10px}
       play: `Jouer`, playLevel: n => `Jouer · niveau ${n}`, tutoBtn: `Tutoriel`, shopBtn: `Boutique`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> éclats · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Niveau ${n}, ${st} étoile${st > 1 ? 's' : ''}`,
-      howTo: `Comment jouer`, language: `Langue`,
+      howTo: `Comment jouer`, language: `Langue`, soundOn: `Son : activé`, soundOff: `Son : coupé`,
       rules: [
         [`Mobile`, `Glisse le doigt pour avancer, interrupteur en bas à droite pour la lampe.`],
         [`Clavier`, `ZQSD / WASD ou flèches, souris pour viser, Espace pour la lampe.`],
@@ -247,7 +254,7 @@ details .rules{margin-top:10px}
       play: `Play`, playLevel: n => `Play · level ${n}`, tutoBtn: `Tutorial`, shopBtn: `Shop`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> shards · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Level ${n}, ${st} star${st === 1 ? '' : 's'}`,
-      howTo: `How to play`, language: `Language`,
+      howTo: `How to play`, language: `Language`, soundOn: `Sound: on`, soundOff: `Sound: off`,
       rules: [
         [`Mobile`, `Slide your finger to move, switch at the bottom right for the lamp.`],
         [`Keyboard`, `WASD or arrow keys, mouse to aim, Space for the lamp.`],
@@ -291,7 +298,7 @@ details .rules{margin-top:10px}
       play: `Jugar`, playLevel: n => `Jugar · nivel ${n}`, tutoBtn: `Tutorial`, shopBtn: `Tienda`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> fragmentos · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Nivel ${n}, ${st} estrella${st === 1 ? '' : 's'}`,
-      howTo: `Cómo jugar`, language: `Idioma`,
+      howTo: `Cómo jugar`, language: `Idioma`, soundOn: `Sonido: sí`, soundOff: `Sonido: no`,
       rules: [
         [`Móvil`, `Desliza el dedo para moverte; interruptor abajo a la derecha para la linterna.`],
         [`Teclado`, `WASD o flechas, ratón para apuntar, Espacio para la linterna.`],
@@ -335,7 +342,7 @@ details .rules{margin-top:10px}
       play: `Jogar`, playLevel: n => `Jogar · nível ${n}`, tutoBtn: `Tutorial`, shopBtn: `Loja`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> fragmentos · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Nível ${n}, ${st} estrela${st === 1 ? '' : 's'}`,
-      howTo: `Como jogar`, language: `Idioma`,
+      howTo: `Como jogar`, language: `Idioma`, soundOn: `Som: ligado`, soundOff: `Som: desligado`,
       rules: [
         [`Celular`, `Deslize o dedo para andar; interruptor no canto inferior direito para a lanterna.`],
         [`Teclado`, `WASD ou setas, mouse para mirar, Espaço para a lanterna.`],
@@ -379,7 +386,7 @@ details .rules{margin-top:10px}
       play: `Spielen`, playLevel: n => `Spielen · Level ${n}`, tutoBtn: `Tutorial`, shopBtn: `Shop`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> Splitter · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Level ${n}, ${st} Stern${st === 1 ? '' : 'e'}`,
-      howTo: `So wird gespielt`, language: `Sprache`,
+      howTo: `So wird gespielt`, language: `Sprache`, soundOn: `Ton: an`, soundOff: `Ton: aus`,
       rules: [
         [`Handy`, `Wischen zum Bewegen, Schalter unten rechts für die Lampe.`],
         [`Tastatur`, `WASD oder Pfeiltasten, Maus zum Zielen, Leertaste für die Lampe.`],
@@ -423,7 +430,7 @@ details .rules{margin-top:10px}
       play: `Играть`, playLevel: n => `Играть · уровень ${n}`, tutoBtn: `Обучение`, shopBtn: `Магазин`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> ${plRu(s, 'осколок', 'осколка', 'осколков')} · ★ ${st} / ${m}`,
       levelAria: (n, st) => `Уровень ${n}, ${st} ${plRu(st, 'звезда', 'звезды', 'звёзд')}`,
-      howTo: `Как играть`, language: `Язык`,
+      howTo: `Как играть`, language: `Язык`, soundOn: `Звук: вкл.`, soundOff: `Звук: выкл.`,
       rules: [
         [`Телефон`, `Веди пальцем по экрану, чтобы идти; переключатель внизу справа включает фонарь.`],
         [`Клавиатура`, `WASD или стрелки, мышь — направление, пробел — фонарь.`],
@@ -467,7 +474,7 @@ details .rules{margin-top:10px}
       play: `开始游戏`, playLevel: n => `开始 · 第 ${n} 关`, tutoBtn: `教程`, shopBtn: `商店`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> 碎片 · ★ ${st} / ${m}`,
       levelAria: (n, st) => `第 ${n} 关，${st} 颗星`,
-      howTo: `玩法说明`, language: `语言`,
+      howTo: `玩法说明`, language: `语言`, soundOn: `声音：开`, soundOff: `声音：关`,
       rules: [
         [`手机`, `在屏幕上滑动手指移动，右下角的开关控制手电。`],
         [`键盘`, `WASD 或方向键移动，鼠标瞄准，空格键开关手电。`],
@@ -511,7 +518,7 @@ details .rules{margin-top:10px}
       play: `Тоглох`, playLevel: n => `Тоглох · ${n}-р түвшин`, tutoBtn: `Сургалт`, shopBtn: `Дэлгүүр`,
       summary: (s, st, m) => `<span class="shards">◆ ${s}</span> хэлтэрхий · ★ ${st} / ${m}`,
       levelAria: (n, st) => `${n}-р түвшин, ${st} од`,
-      howTo: `Хэрхэн тоглох вэ`, language: `Хэл`,
+      howTo: `Хэрхэн тоглох вэ`, language: `Хэл`, soundOn: `Дуу: асаалттай`, soundOff: `Дуу: унтраалттай`,
       rules: [
         [`Гар утас`, `Хуруугаа гулсуулж явна; баруун доод буланд байгаа унтраалгаар чийдэнгээ асаана.`],
         [`Гар`, `WASD эсвэл сумтай товч, хулганаар чиглүүлнэ, Space товчоор чийдэн.`],
@@ -772,6 +779,7 @@ details .rules{margin-top:10px}
   function toggleLamp() {
     if (!player.lamp && player.bat < 15) { flashBattery(); return; }
     player.lamp = !player.lamp;
+    sfx('lamp');
     updateLampUI();
   }
   function updateLampUI() {
@@ -818,7 +826,7 @@ details .rules{margin-top:10px}
   function updateHunter(h, dt) {
     const sees = hunterSees(h);
     if (sees) {
-      if (h.state !== 'chase') { alertFlash = 1; spotted = true; try { navigator.vibrate && navigator.vibrate(70); } catch (_) {} }
+      if (h.state !== 'chase') { if (alertFlash < 0.3) sfx('spotted'); alertFlash = 1; spotted = true; try { navigator.vibrate && navigator.vibrate(70); } catch (_) {} }
       h.state = 'chase'; h.last = { x: player.x, y: player.y };
     }
     if (h.state === 'chase') {
@@ -880,8 +888,8 @@ details .rules{margin-top:10px}
     for (const p of pickups) {
       if (p.taken || Math.hypot(p.x - player.x, p.y - player.y) > 0.55) continue;
       p.taken = true;
-      if (p.type === 'shard') { levelShards++; $('hudShards').textContent = '◆ ' + levelShards + '/' + levelTotal; }
-      else { player.bat = Math.min(100, player.bat + 40); if (tutorial) toast(t('pileToast'), 'good'); }
+      if (p.type === 'shard') { sfx('shard'); levelShards++; $('hudShards').textContent = '◆ ' + levelShards + '/' + levelTotal; }
+      else { sfx('bat'); player.bat = Math.min(100, player.bat + 40); if (tutorial) toast(t('pileToast'), 'good'); }
       try { navigator.vibrate && navigator.vibrate(20); } catch (_) {}
     }
 
@@ -899,7 +907,11 @@ details .rules{margin-top:10px}
     const s = fl(time);
     $('time').textContent = tutorial ? fmt(s) : fmt(s) + ' / ' + fmt(par);
     $('time').classList.toggle('late', time > par);
-    $('alert').classList.toggle('on', hunters.some(h => h.state === 'chase'));
+    const chasing = hunters.some(h => h.state === 'chase');
+    $('alert').classList.toggle('on', chasing);
+    let nearest = Infinity;
+    for (const h of hunters) nearest = Math.min(nearest, Math.hypot(h.x - player.x, h.y - player.y));
+    tensionTarget = chasing ? 1 : Math.max(0, 1 - nearest / 6) * 0.6;
     const fill = $('batFill');
     fill.style.width = player.bat.toFixed(0) + '%';
     fill.classList.toggle('low', player.bat < 20 || batWarn > 0);
@@ -910,6 +922,7 @@ details .rules{margin-top:10px}
 
   function win() {
     state = 'over';
+    sfx('win');
     const fast = time <= par, stealth = !spotted;
     const got = 1 + (stealth ? 1 : 0) + (fast ? 1 : 0);
     const before = save.stars[level] || 0;
@@ -940,6 +953,7 @@ details .rules{margin-top:10px}
   function lose() {
     state = 'over';
     shake = reduceMotion ? 0 : 1;
+    sfx('caught');
     try { navigator.vibrate && navigator.vibrate([120, 60, 200]); } catch (_) {}
     showScreen(`
       <h1 class="lose">${t('loseTitle')}</h1>
@@ -951,7 +965,8 @@ details .rules{margin-top:10px}
   }
   function pause() {
     state = 'pause';
-    showScreen(`<h1>${t('pause')}</h1><div class="row"><button type="button" id="resume">${t('resume')}</button><button type="button" class="ghost" id="home">${t('menu')}</button></div>`);
+    showScreen(`<h1>${t('pause')}</h1><div class="row"><button type="button" id="resume">${t('resume')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button><button type="button" class="ghost" id="home">${t('menu')}</button></div>`);
+    $('soundBtn').onclick = () => { toggleSound(); $('soundBtn').textContent = soundLabel(); };
     $('home').onclick = menu;
     $('resume').onclick = () => { state = 'play'; $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false; if (tutorial) $('tip').hidden = false; last = performance.now(); };
   }
@@ -962,20 +977,19 @@ details .rules{margin-top:10px}
     for (let n = 1; n <= save.unlocked; n++)
       cells += `<button type="button" data-lvl="${n}" class="${n === save.unlocked ? 'cur' : ''}" aria-label="${t('levelAria', n, save.stars[n] || 0)}">${n}<span class="stars">${starHTML(save.stars[n] || 0)}</span><span class="cs">◆ ${save.collected[n] || 0}/${shardQuota(n)}</span></button>`;
     const rules = t('rules').map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
-    const langs = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}">${LANG_LABEL[l]}</button>`).join('');
     showScreen(`
       <h1>Lueur</h1>
       <p>${t('tagline')}</p>
-      <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button></div>
+      <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button><button type="button" class="ghost ic" id="langBtn">${GLOBE}${t('language')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button></div>
       <p class="muted">${t('summary', save.shards, total, save.unlocked * 3)}</p>
       <div class="levels">${cells}</div>
-      <details><summary>${t('howTo')}</summary><dl class="rules">${rules}</dl></details>
-      <div class="langs" role="group" aria-label="${t('language')}">${langs}</div>`);
+      <details><summary>${t('howTo')}</summary><dl class="rules">${rules}</dl></details>`);
     $('play').onclick = () => { if (!save.tutorial) startTutorial(); else { level = save.unlocked; startLevel(); } };
     $('tutoBtn').onclick = startTutorial;
     $('shopBtn').onclick = shop;
     $('panel').querySelectorAll('[data-lvl]').forEach(b => b.onclick = () => { level = +b.dataset.lvl; startLevel(); });
-    $('panel').querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { lang = b.dataset.lang; save.lang = lang; persist(); applyLang(); menu(); });
+    $('langBtn').onclick = langScreen;
+    $('soundBtn').onclick = () => { toggleSound(); $('soundBtn').textContent = soundLabel(); };
   }
   let shopTab = 'lamps';
   function shop() {
@@ -1018,6 +1032,22 @@ details .rules{margin-top:10px}
     });
     $('panel').querySelectorAll('[data-equip]').forEach(b => b.onclick = () => { save[slot] = b.dataset.equip; persist(); applyLamp(); shop(); });
     $('back').onclick = menu;
+  }
+  const GLOBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+  function langScreen() {
+    const items = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}"><span lang="${l}">${LANG_NATIVE[l]}</span><span class="code">${l === lang ? '✓' : LANG_LABEL[l]}</span></button>`).join('');
+    showScreen(`
+      <h1 class="ic">${t('language')}</h1>
+      <div class="langlist">${items}</div>
+      <div class="row"><button type="button" class="ghost" id="back">${t('back')}</button></div>`);
+    $('panel').querySelectorAll('[data-lang]').forEach(b => b.onclick = () => { lang = b.dataset.lang; save.lang = lang; persist(); applyLang(); menu(); });
+    $('back').onclick = menu;
+  }
+  const soundLabel = () => t(save.sound !== false ? 'soundOn' : 'soundOff');
+  function toggleSound() {
+    save.sound = save.sound === false; persist();
+    if (save.sound) { audioInit(); if (actx && actx.state !== 'running') actx.resume(); }
+    if (master) master.gain.setTargetAtTime(save.sound ? 0.9 : 0, actx.currentTime, 0.05);
   }
   function showScreen(html) {
     $('panel').innerHTML = html;
@@ -1092,6 +1122,7 @@ details .rules{margin-top:10px}
   }
   function tutorialCaught() {
     shake = reduceMotion ? 0 : 0.6;
+    sfx('caught');
     try { navigator.vibrate && navigator.vibrate([80, 40, 120]); } catch (_) {}
     player.x = 7.5; player.y = 2.5; player.a = Math.PI / 2;
     player.lamp = false; updateLampUI();
@@ -1101,6 +1132,7 @@ details .rules{margin-top:10px}
   }
   function tutorialDone() {
     state = 'over'; tutorial = false;
+    sfx('win');
     save.tutorial = true; save.shards += levelShards; persist();
     showScreen(`
       <h1 class="win">${t('readyTitle')}</h1>
@@ -1110,6 +1142,100 @@ details .rules{margin-top:10px}
     $('go').onclick = () => { level = save.unlocked; startLevel(); };
     $('home').onclick = menu;
   }
+
+  // ---------- Son ----------
+  // Musique d'ambiance générée en direct (aucun fichier audio) : nappe grave + notes lentes en la mineur,
+  // et un battement de cœur qui monte quand un chasseur approche ou te poursuit.
+  let actx = null, master = null, musicBus = null, sfxBus = null, echoIn = null, droneFilter = null, noiseBuf = null;
+  let nextNote = 0, nextBeat = 0, tension = 0, tensionTarget = 0;
+  const NOTES = [220, 261.63, 293.66, 329.63, 392, 440, 523.25];
+  function audioInit() {
+    if (actx || save.sound === false) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { actx = new AC(); } catch (e) { actx = null; return; }
+    master = actx.createGain(); master.gain.value = 0.9;
+    const comp = actx.createDynamicsCompressor();
+    master.connect(comp); comp.connect(actx.destination);
+    musicBus = actx.createGain(); musicBus.gain.value = 0.6; musicBus.connect(master);
+    sfxBus = actx.createGain(); sfxBus.gain.value = 0.55; sfxBus.connect(master);
+    // Écho
+    const delay = actx.createDelay(1.5), fb = actx.createGain(), wet = actx.createGain();
+    delay.delayTime.value = 0.42; fb.gain.value = 0.38; wet.gain.value = 0.35;
+    echoIn = actx.createGain();
+    echoIn.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(musicBus);
+    // Nappe grave
+    droneFilter = actx.createBiquadFilter(); droneFilter.type = 'lowpass'; droneFilter.frequency.value = 320; droneFilter.Q.value = 2;
+    const dg = actx.createGain(); dg.gain.value = 0.08;
+    droneFilter.connect(dg); dg.connect(musicBus);
+    for (const [f, type, det] of [[55, 'sawtooth', -7], [55, 'sawtooth', 7], [82.41, 'triangle', 0]]) {
+      const o = actx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = det; o.connect(droneFilter); o.start();
+    }
+    const lfo = actx.createOscillator(), lg = actx.createGain();
+    lfo.frequency.value = 0.07; lg.gain.value = 120; lfo.connect(lg); lg.connect(droneFilter.frequency); lfo.start();
+    // Bruit (pour l'effet « attrapé »)
+    noiseBuf = actx.createBuffer(1, actx.sampleRate * 0.6, actx.sampleRate);
+    const nd = noiseBuf.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    nextNote = nextBeat = actx.currentTime + 0.3;
+    setInterval(audioTick, 100);
+  }
+  function env(g, t, peak, attack, release) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + release);
+  }
+  function tone(type, f0, f1, t, peak, attack, release, bus, echo) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + attack + release);
+    env(g, t, peak, attack, release);
+    o.connect(g); g.connect(bus); if (echo) g.connect(echoIn);
+    o.start(t); o.stop(t + attack + release + 0.05);
+  }
+  function audioTick() {
+    if (!actx || actx.state !== 'running') return;
+    const now = actx.currentTime;
+    // Notes lentes
+    while (nextNote < now + 0.3) {
+      const f = NOTES[rnd(NOTES.length)] * (Math.random() < 0.3 ? 0.5 : 1);
+      tone('triangle', f, f, nextNote, 0.05, 1.2, 3, musicBus, true);
+      nextNote += Math.max(0.8, 1.6 + Math.random() * 2.6 - tension * 1.2);
+    }
+    // Battement de cœur
+    const bpm = 64 + tension * 64;
+    while (nextBeat < now + 0.3) {
+      if (tension > 0.06) {
+        tone('sine', 75, 38, nextBeat, 0.55 * tension, 0.01, 0.22, musicBus, false);
+        tone('sine', 70, 36, nextBeat + 0.24, 0.35 * tension, 0.01, 0.2, musicBus, false);
+      }
+      nextBeat += 60 / bpm;
+    }
+    droneFilter.frequency.setTargetAtTime(320 + tension * 520, now, 0.6);
+  }
+  function sfx(kind) {
+    if (!actx || save.sound === false || actx.state !== 'running') return;
+    const t0 = actx.currentTime + 0.01;
+    if (kind === 'shard') { tone('sine', 1320, 1320, t0, 0.18, 0.005, 0.12, sfxBus, true); tone('sine', 1760, 1760, t0 + 0.07, 0.15, 0.005, 0.2, sfxBus, true); }
+    else if (kind === 'bat') tone('triangle', 300, 620, t0, 0.2, 0.01, 0.25, sfxBus, false);
+    else if (kind === 'lamp') tone('square', 1800, 1200, t0, 0.05, 0.002, 0.03, sfxBus, false);
+    else if (kind === 'spotted') { tone('sawtooth', 220, 210, t0, 0.12, 0.01, 0.5, sfxBus, true); tone('sawtooth', 233, 228, t0, 0.1, 0.01, 0.5, sfxBus, true); }
+    else if (kind === 'caught') {
+      const n = actx.createBufferSource(), g = actx.createGain(), f = actx.createBiquadFilter();
+      n.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = 900;
+      env(g, t0, 0.35, 0.005, 0.5); n.connect(f); f.connect(g); g.connect(sfxBus); n.start(t0);
+      tone('sine', 140, 40, t0, 0.5, 0.01, 0.7, sfxBus, false);
+    }
+    else if (kind === 'win') [440, 523.25, 659.25, 880].forEach((f, i) => tone('triangle', f, f, t0 + i * 0.12, 0.16, 0.01, 0.6, sfxBus, true));
+  }
+  // Le navigateur n'autorise le son qu'après un geste du joueur
+  const unlockAudio = () => { if (save.sound === false) return; audioInit(); if (actx && actx.state === 'suspended') actx.resume(); };
+  addEventListener('pointerdown', unlockAudio, true);
+  addEventListener('keydown', unlockAudio, true);
+  document.addEventListener('visibilitychange', () => {
+    if (!actx) return;
+    if (document.hidden) actx.suspend(); else if (save.sound !== false) actx.resume();
+  });
 
   // ---------- Rendu ----------
   let camX = 0, camY = 0;
@@ -1332,6 +1458,7 @@ details .rules{margin-top:10px}
     if (state === 'play') update(dt);
     else if (state === 'reveal') { revealT -= dt; if (revealT <= 0) { revealT = 0; state = 'play'; } }
     else shake = Math.max(0, shake - dt * 3);
+    tension += ((state === 'play' ? tensionTarget : 0) - tension) * Math.min(1, dt * 2);
     render(now);
     requestAnimationFrame(frame);
   }
