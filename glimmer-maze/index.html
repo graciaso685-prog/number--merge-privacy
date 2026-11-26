@@ -1,4 +1,4 @@
-<title>Lueur</title>
+<title>Glimmer Maze</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap">
@@ -978,7 +978,7 @@ details .rules{margin-top:10px}
       cells += `<button type="button" data-lvl="${n}" class="${n === save.unlocked ? 'cur' : ''}" aria-label="${t('levelAria', n, save.stars[n] || 0)}">${n}<span class="stars">${starHTML(save.stars[n] || 0)}</span><span class="cs">◆ ${save.collected[n] || 0}/${shardQuota(n)}</span></button>`;
     const rules = t('rules').map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('');
     showScreen(`
-      <h1>Lueur</h1>
+      <h1>Glimmer Maze</h1>
       <p>${t('tagline')}</p>
       <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button><button type="button" class="ghost ic" id="langBtn">${GLOBE}${t('language')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button></div>
       <p class="muted">${t('summary', save.shards, total, save.unlocked * 3)}</p>
