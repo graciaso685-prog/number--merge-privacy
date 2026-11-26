@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap">
 <style>
-/* Layout : canvas plein écran, HUD flottant en haut, interrupteur de lampe en haut à gauche, écrans centrés par-dessus */
+/* Layout : canvas plein écran, HUD flottant en haut, interrupteur de lampe en bas à droite, écrans centrés par-dessus */
 :root{
   --void:#07070b;      /* le noir du labyrinthe */
   --stone:#3a3744;     /* sol */
@@ -22,7 +22,6 @@
 html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-family:var(--body);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-variant-numeric:tabular-nums}
-#hud .info{margin-left:106px}
 #hud .lvl{font-family:var(--display);font-weight:500;letter-spacing:.04em}
 #hud .time{color:var(--muted);margin-left:8px}
 #alert{position:absolute;left:50%;top:54px;translate:-50% 0;white-space:nowrap;font-family:var(--display);font-weight:800;color:var(--hunter);opacity:0;transition:opacity .2s}
@@ -32,7 +31,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
 .bat-bar{width:64px;height:8px;border:1px solid var(--muted);border-radius:2px;padding:1px}
 .bat-fill{height:100%;background:var(--lamp);border-radius:1px;transition:background .2s}
 .bat-fill.low{background:var(--hunter)}
-#lampBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:max(16px,env(safe-area-inset-left,0px));width:92px;height:46px;padding:0;border-radius:999px;border:2px solid #34333d;background:#1f1e26;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);cursor:pointer;touch-action:none;transition:background .2s,border-color .2s}
+#lampBtn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);right:max(16px,env(safe-area-inset-right,0px));width:92px;height:46px;padding:0;border-radius:999px;border:2px solid #34333d;background:#1f1e26;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);cursor:pointer;touch-action:none;transition:background .2s,border-color .2s}
 #lampBtn .knob{position:absolute;top:3px;left:3px;width:36px;height:36px;border-radius:50%;background:var(--lamp);color:#1a1408;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(255,197,107,.7);transform:translateX(46px);transition:transform .18s ease,background .2s,box-shadow .2s,color .2s}
 #lampBtn .knob svg{width:20px;height:20px}
 #lampBtn:not(.off){background:rgba(255,197,107,.18);border-color:rgba(255,197,107,.55)}
@@ -409,7 +408,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
       <h1>Lueur</h1>
       <p>Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.</p>
       <dl class="rules">
-        <dt>Mobile</dt><dd>Glisse le doigt pour avancer, interrupteur en haut à gauche pour la lampe.</dd>
+        <dt>Mobile</dt><dd>Glisse le doigt pour avancer, interrupteur en bas à droite pour la lampe.</dd>
         <dt>Clavier</dt><dd>ZQSD / WASD ou flèches, souris pour viser, Espace pour la lampe.</dd>
         <dt>Chasseurs</dt><dd>Faisceaux rouges. S'ils te voient, ils foncent sur toi.</dd>
         <dt>Batterie</dt><dd>Se vide allumée, se recharge éteinte.</dd>
