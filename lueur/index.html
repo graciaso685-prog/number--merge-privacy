@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap">
 <style>
-/* Layout : canvas plein écran, HUD flottant en haut, bouton lampe en bas à droite, écrans centrés par-dessus */
+/* Layout : canvas plein écran, HUD flottant en haut, interrupteur de lampe en haut à gauche, écrans centrés par-dessus */
 :root{
   --void:#07070b;      /* le noir du labyrinthe */
   --stone:#3a3744;     /* sol */
@@ -22,19 +22,22 @@
 html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-family:var(--body);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block}
 #hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+#hud .info{margin-left:106px}
 #hud .lvl{font-family:var(--display);font-weight:500;letter-spacing:.04em}
 #hud .time{color:var(--muted);margin-left:8px}
-#alert{font-family:var(--display);font-weight:800;color:var(--hunter);opacity:0;transition:opacity .2s}
+#alert{position:absolute;left:50%;top:54px;translate:-50% 0;white-space:nowrap;font-family:var(--display);font-weight:800;color:var(--hunter);opacity:0;transition:opacity .2s}
 #alert.on{opacity:1;animation:pulse .6s ease-in-out infinite alternate}
-@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes pulse{from{scale:1}to{scale:1.08}}
 .bat{display:flex;align-items:center;gap:8px}
 .bat-bar{width:64px;height:8px;border:1px solid var(--muted);border-radius:2px;padding:1px}
 .bat-fill{height:100%;background:var(--lamp);border-radius:1px;transition:background .2s}
 .bat-fill.low{background:var(--hunter)}
-#lampBtn{position:fixed;right:calc(max(16px,env(safe-area-inset-right,0px)) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:78px;height:78px;border-radius:50%;border:2px solid var(--lamp);background:rgba(255,197,107,.14);color:var(--lamp);font:600 11px var(--body);letter-spacing:.1em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none}
-#lampBtn .bulb{width:18px;height:18px;border-radius:50%;background:var(--lamp);box-shadow:0 0 14px var(--lamp)}
-#lampBtn.off{border-color:var(--muted);color:var(--muted);background:rgba(154,152,168,.08)}
-#lampBtn.off .bulb{background:transparent;border:2px solid var(--muted);box-shadow:none}
+#lampBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:max(16px,env(safe-area-inset-left,0px));width:92px;height:46px;padding:0;border-radius:999px;border:2px solid #34333d;background:#1f1e26;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);cursor:pointer;touch-action:none;transition:background .2s,border-color .2s}
+#lampBtn .knob{position:absolute;top:3px;left:3px;width:36px;height:36px;border-radius:50%;background:var(--lamp);color:#1a1408;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(255,197,107,.7);transform:translateX(46px);transition:transform .18s ease,background .2s,box-shadow .2s,color .2s}
+#lampBtn .knob svg{width:20px;height:20px}
+#lampBtn:not(.off){background:rgba(255,197,107,.18);border-color:rgba(255,197,107,.55)}
+#lampBtn.off .knob{background:#44434d;color:#f2f1f6;box-shadow:0 2px 6px rgba(0,0,0,.5);transform:translateX(0)}
+@media (prefers-reduced-motion:reduce){#lampBtn .knob{transition:none}}
 #lampBtn:focus-visible,#screen button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 #screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:radial-gradient(ellipse at 50% 40%,rgba(255,197,107,.10),rgba(7,7,11,.88) 60%)}
 .panel{max-width:400px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:left}
@@ -53,12 +56,12 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
 <canvas id="game" aria-label="Labyrinthe"></canvas>
 
 <div id="hud" hidden>
-  <div><span class="lvl" id="lvl">Niveau 1</span><span class="time" id="time">0:00</span></div>
+  <div class="info"><span class="lvl" id="lvl">Niveau 1</span><span class="time" id="time">0:00</span></div>
   <div id="alert">Repéré !</div>
   <div class="bat"><span id="batLabel">Lampe</span><div class="bat-bar"><div class="bat-fill" id="batFill" style="width:100%"></div></div></div>
 </div>
 
-<button id="lampBtn" type="button" hidden aria-label="Allumer ou éteindre la lampe"><span class="bulb"></span><span id="lampTxt">Allumée</span></button>
+<button id="lampBtn" type="button" role="switch" aria-checked="true" hidden aria-label="Lampe"><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></svg></span></button>
 
 <div id="screen">
   <div class="panel" id="panel"></div>
@@ -267,7 +270,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
   }
   function updateLampUI() {
     lampBtn.classList.toggle('off', !player.lamp);
-    $('lampTxt').textContent = player.lamp ? 'Allumée' : 'Éteinte';
+    lampBtn.setAttribute('aria-checked', String(player.lamp));
   }
   let batWarn = 0;
   function flashBattery() { batWarn = 1; }
@@ -406,7 +409,7 @@ html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-fami
       <h1>Lueur</h1>
       <p>Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.</p>
       <dl class="rules">
-        <dt>Mobile</dt><dd>Glisse le doigt pour avancer, bouton Lampe pour l'éteindre.</dd>
+        <dt>Mobile</dt><dd>Glisse le doigt pour avancer, interrupteur en haut à gauche pour la lampe.</dd>
         <dt>Clavier</dt><dd>ZQSD / WASD ou flèches, souris pour viser, Espace pour la lampe.</dd>
         <dt>Chasseurs</dt><dd>Faisceaux rouges. S'ils te voient, ils foncent sur toi.</dd>
         <dt>Batterie</dt><dd>Se vide allumée, se recharge éteinte.</dd>
