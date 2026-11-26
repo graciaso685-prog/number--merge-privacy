@@ -99,7 +99,9 @@ details .rules{margin-top:10px}
 #screen .langlist button{align-self:stretch;width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:#17161d;color:var(--ink);border:1.5px solid #2c2b35;border-radius:12px;font:600 16px var(--body);letter-spacing:0;padding:14px 16px}
 #screen .langlist button[aria-pressed="true"]{border-color:var(--lamp)}
 .langlist .code{font:600 11px var(--body);letter-spacing:.08em;color:var(--muted)}
-#hud .info{display:flex;align-items:center}
+#hud .info{display:flex;align-items:center;min-width:0}
+#hud .info span,#hud .bat span{white-space:nowrap}
+@media (max-width:380px){#batLabel{display:none}#hud .time,#hud .hs{margin-left:6px}#hud{gap:8px}}
 #pauseBtn{pointer-events:auto;flex:none;width:34px;height:34px;margin-right:10px;padding:0;border-radius:50%;border:1.5px solid #34333d;background:rgba(14,13,20,.7);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none}
 #pauseBtn span{width:4px;height:12px;border-radius:1px;background:var(--ink)}
 #pauseBtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -1536,7 +1538,7 @@ details .rules{margin-top:10px}
 </script>
 
 <script>
-if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=869a9ca02f').catch(() => {}));
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=4fd0e61f22').catch(() => {}));
 </script>
 </body>
 </html>
