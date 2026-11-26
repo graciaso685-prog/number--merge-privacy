@@ -1,0 +1,561 @@
+<title>Lueur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap">
+<style>
+/* Layout : canvas plein écran, HUD flottant en haut, bouton lampe en bas à droite, écrans centrés par-dessus */
+:root{
+  --void:#07070b;      /* le noir du labyrinthe */
+  --stone:#3a3744;     /* sol */
+  --wall:#7a7488;      /* murs */
+  --lamp:#ffc56b;      /* lumière du joueur */
+  --hunter:#ff5a45;    /* lumière des chasseurs */
+  --exit:#4fe0a6;      /* sortie */
+  --ink:#ecebf2;
+  --muted:#9a98a8;
+  --panel:rgba(14,13,20,.92);
+  --display:'Unbounded',system-ui,sans-serif;
+  --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-family:var(--body);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+#hud .lvl{font-family:var(--display);font-weight:500;letter-spacing:.04em}
+#hud .time{color:var(--muted);margin-left:8px}
+#alert{font-family:var(--display);font-weight:800;color:var(--hunter);opacity:0;transition:opacity .2s}
+#alert.on{opacity:1;animation:pulse .6s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+.bat{display:flex;align-items:center;gap:8px}
+.bat-bar{width:64px;height:8px;border:1px solid var(--muted);border-radius:2px;padding:1px}
+.bat-fill{height:100%;background:var(--lamp);border-radius:1px;transition:background .2s}
+.bat-fill.low{background:var(--hunter)}
+#lampBtn{position:fixed;right:calc(max(16px,env(safe-area-inset-right,0px)) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:78px;height:78px;border-radius:50%;border:2px solid var(--lamp);background:rgba(255,197,107,.14);color:var(--lamp);font:600 11px var(--body);letter-spacing:.1em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none}
+#lampBtn .bulb{width:18px;height:18px;border-radius:50%;background:var(--lamp);box-shadow:0 0 14px var(--lamp)}
+#lampBtn.off{border-color:var(--muted);color:var(--muted);background:rgba(154,152,168,.08)}
+#lampBtn.off .bulb{background:transparent;border:2px solid var(--muted);box-shadow:none}
+#lampBtn:focus-visible,#screen button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:radial-gradient(ellipse at 50% 40%,rgba(255,197,107,.10),rgba(7,7,11,.88) 60%)}
+.panel{max-width:400px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:left}
+.panel h1{font-family:var(--display);font-weight:800;font-size:clamp(40px,12vw,64px);line-height:1;margin:0;letter-spacing:-.02em;text-wrap:balance;color:var(--lamp);text-shadow:0 0 28px rgba(255,197,107,.35)}
+.panel h1.lose{color:var(--hunter);text-shadow:0 0 28px rgba(255,90,69,.35)}
+.panel h1.win{color:var(--exit);text-shadow:0 0 28px rgba(79,224,166,.35)}
+.panel p{margin:0;line-height:1.55;color:var(--ink);font-size:15px}
+.panel .muted{color:var(--muted);font-size:13px}
+.rules{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;color:var(--muted);margin:0}
+.rules dt{color:var(--ink);font-weight:600}
+.rules dd{margin:0}
+#screen button{align-self:flex-start;font:800 15px var(--display);letter-spacing:.04em;padding:14px 26px;border-radius:999px;border:0;background:var(--lamp);color:#1a1408;cursor:pointer}
+@media (prefers-reduced-motion:reduce){#alert.on{animation:none}}
+</style>
+
+<canvas id="game" aria-label="Labyrinthe"></canvas>
+
+<div id="hud" hidden>
+  <div><span class="lvl" id="lvl">Niveau 1</span><span class="time" id="time">0:00</span></div>
+  <div id="alert">Repéré !</div>
+  <div class="bat"><span id="batLabel">Lampe</span><div class="bat-bar"><div class="bat-fill" id="batFill" style="width:100%"></div></div></div>
+</div>
+
+<button id="lampBtn" type="button" hidden aria-label="Allumer ou éteindre la lampe"><span class="bulb"></span><span id="lampTxt">Allumée</span></button>
+
+<div id="screen">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const cvs = document.getElementById('game');
+  const ctx = cvs.getContext('2d');
+  const dark = document.createElement('canvas');
+  const dctx = dark.getContext('2d');
+  const $ = id => document.getElementById(id);
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const C = {
+    void: '#07070b', stone: '#3a3744', stone2: '#3f3c4a', wall: '#7a7488', wallTop: '#a19bb0',
+    lamp: '#ffc56b', hunter: '#ff5a45', exit: '#4fe0a6'
+  };
+
+  // ---------- Réglages ----------
+  const CONE = Math.PI / 3, HALF = CONE / 2;   // lampe à 60°
+  const P_RANGE = 6.5, H_RANGE = 5.2;           // portée en cases
+  const P_SPEED = 3.2, R = 0.3;                 // vitesse joueur (cases/s), rayon
+  const GLOW_NOTICE = 3;                        // distance à laquelle un chasseur remarque la lueur
+  const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+
+  let W = 0, H = 0, DPR = 1, T = 40;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    for (const c of [cvs, dark]) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
+    T = Math.max(28, Math.min(W, H) / 10);
+  }
+  addEventListener('resize', resize); resize();
+
+  let grid, gw, gh, exit, player, hunters = [];
+  let level = 1, state = 'menu', time = 0, shake = 0, alertFlash = 0;
+  let best = 1;
+  try { best = Math.max(1, parseInt(localStorage.getItem('lueur-best') || '1', 10) || 1); } catch (e) {}
+
+  const rnd = n => Math.floor(Math.random() * n);
+  const fl = Math.floor;
+  const isWall = (x, y) => x < 0 || y < 0 || x >= gw || y >= gh || grid[y][x] === 1;
+
+  // ---------- Labyrinthe ----------
+  function genMaze(cw, ch) {
+    gw = cw * 2 + 1; gh = ch * 2 + 1;
+    grid = Array.from({ length: gh }, () => new Uint8Array(gw).fill(1));
+    const seen = Array.from({ length: ch }, () => new Uint8Array(cw));
+    const stack = [[0, 0]]; seen[0][0] = 1; grid[1][1] = 0;
+    while (stack.length) {
+      const [cx, cy] = stack[stack.length - 1];
+      const opts = DIRS.filter(([dx, dy]) => {
+        const nx = cx + dx, ny = cy + dy;
+        return nx >= 0 && ny >= 0 && nx < cw && ny < ch && !seen[ny][nx];
+      });
+      if (!opts.length) { stack.pop(); continue; }
+      const [dx, dy] = opts[rnd(opts.length)];
+      const nx = cx + dx, ny = cy + dy;
+      seen[ny][nx] = 1;
+      grid[cy * 2 + 1 + dy][cx * 2 + 1 + dx] = 0;
+      grid[ny * 2 + 1][nx * 2 + 1] = 0;
+      stack.push([nx, ny]);
+    }
+    // Quelques boucles pour pouvoir semer les chasseurs
+    let loops = Math.floor(cw * ch * 0.12), guard = 0;
+    while (loops > 0 && guard++ < 5000) {
+      const x = 1 + rnd(gw - 2), y = 1 + rnd(gh - 2);
+      if (grid[y][x] !== 1) continue;
+      const between = (x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0);
+      if (!between) continue;
+      grid[y][x] = 0; loops--;
+    }
+  }
+
+  function bfs(sx, sy) {
+    const d = new Int32Array(gw * gh).fill(-1), prev = new Int32Array(gw * gh).fill(-1);
+    const q = [sy * gw + sx]; d[q[0]] = 0;
+    for (let i = 0; i < q.length; i++) {
+      const c = q[i], x = c % gw, y = (c / gw) | 0;
+      for (const [dx, dy] of DIRS) {
+        const nx = x + dx, ny = y + dy;
+        if (isWall(nx, ny)) continue;
+        const n = ny * gw + nx;
+        if (d[n] >= 0) continue;
+        d[n] = d[c] + 1; prev[n] = c; q.push(n);
+      }
+    }
+    return { d, prev };
+  }
+  function findPath(sx, sy, tx, ty) {
+    if (isWall(tx, ty)) return [];
+    const { d, prev } = bfs(sx, sy);
+    let c = ty * gw + tx;
+    if (d[c] < 0) return [];
+    const out = [], start = sy * gw + sx;
+    while (c !== start && c >= 0) { out.push(c); c = prev[c]; }
+    out.reverse();
+    return out.map(c => ({ x: c % gw + 0.5, y: ((c / gw) | 0) + 0.5 }));
+  }
+
+  // ---------- Géométrie ----------
+  function castRay(ox, oy, a, max) {
+    const dx = Math.cos(a), dy = Math.sin(a);
+    let mx = fl(ox), my = fl(oy);
+    const ddx = Math.abs(1 / dx), ddy = Math.abs(1 / dy);
+    let sx, sy, sdx, sdy;
+    if (dx < 0) { sx = -1; sdx = (ox - mx) * ddx; } else { sx = 1; sdx = (mx + 1 - ox) * ddx; }
+    if (dy < 0) { sy = -1; sdy = (oy - my) * ddy; } else { sy = 1; sdy = (my + 1 - oy) * ddy; }
+    let d = 0;
+    while (d < max) {
+      if (sdx < sdy) { d = sdx; sdx += ddx; mx += sx; } else { d = sdy; sdy += ddy; my += sy; }
+      if (isWall(mx, my)) return Math.min(d, max);
+    }
+    return max;
+  }
+  function los(ax, ay, bx, by) {
+    const d = Math.hypot(bx - ax, by - ay);
+    if (d < 1e-4) return true;
+    return castRay(ax, ay, Math.atan2(by - ay, bx - ax), d) >= d - 0.02;
+  }
+  function angDiff(a, b) {
+    let d = (a - b) % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  }
+  const turn = (a, target, k) => a + angDiff(target, a) * k;
+
+  function collides(x, y, r) {
+    for (let ty = fl(y - r); ty <= fl(y + r); ty++)
+      for (let tx = fl(x - r); tx <= fl(x + r); tx++)
+        if (isWall(tx, ty)) {
+          const cx = Math.max(tx, Math.min(x, tx + 1)), cy = Math.max(ty, Math.min(y, ty + 1));
+          if ((x - cx) ** 2 + (y - cy) ** 2 < r * r) return true;
+        }
+    return false;
+  }
+  function move(e, dx, dy) {
+    e.x += dx; if (collides(e.x, e.y, R)) e.x -= dx;
+    e.y += dy; if (collides(e.x, e.y, R)) e.y -= dy;
+  }
+
+  // ---------- Niveau ----------
+  function hunterCount() { return Math.min(1 + Math.floor(level / 2), 5); }
+  function patrolSpeed() { return 1.6 + 0.08 * level; }
+  function chaseSpeed() { return Math.min(2.8 + 0.1 * level, 3.5); }
+
+  function startLevel() {
+    const size = Math.min(7 + level * 2, 19);
+    genMaze(size, size);
+    player = { x: 1.5, y: 1.5, a: isWall(2, 1) ? Math.PI / 2 : 0, lamp: true, bat: 100 };
+    const { d } = bfs(1, 1);
+    let far = 0, ex = 0;
+    for (let i = 0; i < d.length; i++) if (d[i] > far) { far = d[i]; ex = i; }
+    exit = { x: ex % gw, y: (ex / gw) | 0 };
+    const cands = [];
+    for (let i = 0; i < d.length; i++) if (d[i] > far * 0.4 && i !== ex) cands.push(i);
+    hunters = [];
+    for (let k = 0; k < hunterCount(); k++) {
+      const c = cands[rnd(cands.length)];
+      hunters.push({ x: c % gw + 0.5, y: ((c / gw) | 0) + 0.5, a: Math.random() * 6.28, state: 'patrol', path: [], repath: 0, timer: 0, last: null });
+    }
+    time = 0; shake = 0;
+    state = 'play';
+    $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false;
+    $('lvl').textContent = 'Niveau ' + level;
+    updateLampUI();
+  }
+
+  // ---------- Entrées ----------
+  const keys = new Set();
+  let mouse = null, joy = null;
+  addEventListener('keydown', e => {
+    keys.add(e.code);
+    if ((e.code === 'Space' || e.code === 'KeyE') && !e.repeat && state === 'play') { toggleLamp(); e.preventDefault(); }
+    if ((e.code === 'Escape' || e.code === 'KeyP') && state === 'play') pause();
+    if (e.code === 'Enter' && state !== 'play') { const b = $('panel').querySelector('button'); if (b) b.click(); }
+  });
+  addEventListener('keyup', e => keys.delete(e.code));
+  addEventListener('blur', () => { keys.clear(); joy = null; if (state === 'play') pause(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') pause(); });
+
+  cvs.addEventListener('pointermove', e => {
+    if (e.pointerType === 'mouse') mouse = { x: e.clientX, y: e.clientY };
+    if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; }
+  });
+  cvs.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' || joy) return;
+    joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
+    try { cvs.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  const endJoy = e => { if (joy && e.pointerId === joy.id) joy = null; };
+  cvs.addEventListener('pointerup', endJoy);
+  cvs.addEventListener('pointercancel', endJoy);
+
+  const lampBtn = $('lampBtn');
+  lampBtn.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); if (state === 'play') toggleLamp(); });
+  lampBtn.addEventListener('click', e => { if (e.detail === 0 && state === 'play') toggleLamp(); }); // clavier
+
+  function toggleLamp() {
+    if (!player.lamp && player.bat < 15) { flashBattery(); return; }
+    player.lamp = !player.lamp;
+    updateLampUI();
+  }
+  function updateLampUI() {
+    lampBtn.classList.toggle('off', !player.lamp);
+    $('lampTxt').textContent = player.lamp ? 'Allumée' : 'Éteinte';
+  }
+  let batWarn = 0;
+  function flashBattery() { batWarn = 1; }
+
+  function inputVector() {
+    let x = 0, y = 0;
+    if (keys.has('KeyD') || keys.has('ArrowRight')) x += 1;
+    if (keys.has('KeyA') || keys.has('ArrowLeft')) x -= 1;
+    if (keys.has('KeyS') || keys.has('ArrowDown')) y += 1;
+    if (keys.has('KeyW') || keys.has('ArrowUp')) y -= 1;
+    if (joy) {
+      const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy);
+      if (d > 8) { const k = Math.min(d, 50) / 50 / d; x = dx * k; y = dy * k; }
+    }
+    const l = Math.hypot(x, y);
+    if (l > 1) { x /= l; y /= l; }
+    return { x, y };
+  }
+
+  // ---------- Chasseurs ----------
+  function hunterSees(h) {
+    const dx = player.x - h.x, dy = player.y - h.y, d = Math.hypot(dx, dy);
+    if (!los(h.x, h.y, player.x, player.y)) return false;
+    if (d < 0.9) return true;                                                          // il t'entend
+    if (d < H_RANGE && Math.abs(angDiff(Math.atan2(dy, dx), h.a)) < HALF) return true; // dans son faisceau
+    if (player.lamp && d < GLOW_NOTICE) return true;                                   // il voit ta lueur
+    if (player.lamp && d < P_RANGE && Math.abs(angDiff(Math.atan2(-dy, -dx), player.a)) < HALF) return true; // tu l'éclaires
+    return false;
+  }
+  function followPath(h, speed, dt, faceAngle) {
+    const t = h.path[0];
+    if (!t) return;
+    const dx = t.x - h.x, dy = t.y - h.y, d = Math.hypot(dx, dy);
+    if (d < 0.08) { h.path.shift(); return; }
+    const step = Math.min(speed * dt, d);
+    move(h, dx / d * step, dy / d * step);
+    h.a = turn(h.a, faceAngle ?? Math.atan2(dy, dx), 1 - Math.exp(-dt * 8));
+  }
+  function updateHunter(h, dt) {
+    const sees = hunterSees(h);
+    if (sees) {
+      if (h.state !== 'chase') { alertFlash = 1; try { navigator.vibrate && navigator.vibrate(70); } catch (_) {} }
+      h.state = 'chase'; h.last = { x: player.x, y: player.y };
+    }
+    if (h.state === 'chase') {
+      const toPlayer = Math.atan2(player.y - h.y, player.x - h.x);
+      h.repath -= dt;
+      if (h.repath <= 0) { h.repath = 0.25; h.path = findPath(fl(h.x), fl(h.y), fl(h.last.x), fl(h.last.y)); }
+      if (sees && Math.hypot(player.x - h.x, player.y - h.y) < 1.4) {
+        const dx = player.x - h.x, dy = player.y - h.y, d = Math.hypot(dx, dy) || 1;
+        move(h, dx / d * chaseSpeed() * dt, dy / d * chaseSpeed() * dt);
+        h.a = turn(h.a, toPlayer, 1 - Math.exp(-dt * 10));
+      } else {
+        followPath(h, chaseSpeed(), dt, sees ? toPlayer : undefined);
+      }
+      if (!sees && !h.path.length && h.repath < 0.2) { h.state = 'search'; h.timer = 3.5; }
+    } else if (h.state === 'search') {
+      h.a += dt * 2.2;
+      h.timer -= dt;
+      if (h.timer <= 0) { h.state = 'patrol'; h.path = []; }
+    } else {
+      if (!h.path.length) {
+        for (let i = 0; i < 30; i++) {
+          const x = 1 + rnd(gw - 2), y = 1 + rnd(gh - 2);
+          if (!isWall(x, y)) { h.path = findPath(fl(h.x), fl(h.y), x, y); break; }
+        }
+      }
+      followPath(h, patrolSpeed(), dt);
+    }
+  }
+
+  // ---------- Boucle ----------
+  function update(dt) {
+    time += dt;
+    const v = inputVector();
+    move(player, v.x * P_SPEED * dt, v.y * P_SPEED * dt);
+    let aim = null;
+    if (mouse) aim = Math.atan2(mouse.y - H / 2, mouse.x - W / 2);
+    else if (v.x || v.y) aim = Math.atan2(v.y, v.x);
+    if (aim !== null) player.a = turn(player.a, aim, 1 - Math.exp(-dt * 14));
+
+    if (player.lamp) {
+      player.bat -= 2.6 * dt;
+      if (player.bat <= 0) { player.bat = 0; player.lamp = false; updateLampUI(); flashBattery(); }
+    } else player.bat = Math.min(100, player.bat + 3.5 * dt);
+
+    for (const h of hunters) {
+      updateHunter(h, dt);
+      if (Math.hypot(h.x - player.x, h.y - player.y) < 0.55) return lose();
+    }
+    if (fl(player.x) === exit.x && fl(player.y) === exit.y) return win();
+
+    shake = Math.max(0, shake - dt * 3);
+    alertFlash = Math.max(0, alertFlash - dt * 2);
+    batWarn = Math.max(0, batWarn - dt * 2);
+
+    // HUD
+    const s = fl(time);
+    $('time').textContent = fl(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    $('alert').classList.toggle('on', hunters.some(h => h.state === 'chase'));
+    const fill = $('batFill');
+    fill.style.width = player.bat.toFixed(0) + '%';
+    fill.classList.toggle('low', player.bat < 20 || batWarn > 0);
+  }
+
+  function win() {
+    state = 'over';
+    level++;
+    if (level > best) { best = level; try { localStorage.setItem('lueur-best', String(best)); } catch (e) {} }
+    const s = fl(time);
+    showScreen(`
+      <h1 class="win">Sortie&nbsp;!</h1>
+      <p>Tu t'es échappé en ${fl(s / 60)} min ${String(s % 60).padStart(2, '0')} s.</p>
+      <p class="muted">Niveau ${level} : labyrinthe plus grand, ${hunterCount()} chasseur${hunterCount() > 1 ? 's' : ''}.</p>
+      <button type="button" id="next">Niveau suivant</button>`);
+    $('next').onclick = startLevel;
+  }
+  function lose() {
+    state = 'over';
+    shake = reduceMotion ? 0 : 1;
+    try { navigator.vibrate && navigator.vibrate([120, 60, 200]); } catch (_) {}
+    showScreen(`
+      <h1 class="lose">Attrapé</h1>
+      <p>Un chasseur t'a eu au niveau ${level}.</p>
+      <p class="muted">Astuce : éteins ta lampe quand un faisceau rouge approche. Ta lueur se voit de loin.</p>
+      <button type="button" id="retry">Réessayer</button>`);
+    $('retry').onclick = startLevel;
+  }
+  function pause() {
+    state = 'pause';
+    showScreen(`<h1>Pause</h1><button type="button" id="resume">Reprendre</button>`);
+    $('resume').onclick = () => { state = 'play'; $('screen').hidden = true; last = performance.now(); };
+  }
+  function menu() {
+    showScreen(`
+      <h1>Lueur</h1>
+      <p>Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.</p>
+      <dl class="rules">
+        <dt>Mobile</dt><dd>Glisse le doigt pour avancer, bouton Lampe pour l'éteindre.</dd>
+        <dt>Clavier</dt><dd>ZQSD / WASD ou flèches, souris pour viser, Espace pour la lampe.</dd>
+        <dt>Chasseurs</dt><dd>Faisceaux rouges. S'ils te voient, ils foncent sur toi.</dd>
+        <dt>Batterie</dt><dd>Se vide allumée, se recharge éteinte.</dd>
+      </dl>
+      ${best > 1 ? `<p class="muted">Record : niveau ${best}</p>` : ''}
+      <button type="button" id="play">Jouer</button>`);
+    $('play').onclick = () => { level = 1; startLevel(); };
+  }
+  function showScreen(html) {
+    $('panel').innerHTML = html;
+    $('screen').hidden = false;
+    $('hud').hidden = true; $('lampBtn').hidden = true;
+    joy = null;
+    const b = $('panel').querySelector('button'); if (b) setTimeout(() => b.focus({ preventScroll: true }), 50);
+  }
+
+  // ---------- Rendu ----------
+  let camX = 0, camY = 0;
+  const sx = x => x * T - camX, sy = y => y * T - camY;
+
+  function cone(ox, oy, a, range, rays) {
+    const pts = [];
+    for (let i = 0; i <= rays; i++) {
+      const ang = a - HALF + CONE * i / rays;
+      const d = Math.min(castRay(ox, oy, ang, range) + 0.3, range); // +0.3 : éclaire la face du mur
+      pts.push(ox + Math.cos(ang) * d, oy + Math.sin(ang) * d);
+    }
+    return pts;
+  }
+  function polyPath(c, ox, oy, pts) {
+    c.beginPath(); c.moveTo(sx(ox), sy(oy));
+    for (let i = 0; i < pts.length; i += 2) c.lineTo(sx(pts[i]), sy(pts[i + 1]));
+    c.closePath();
+  }
+  function cutCone(ox, oy, pts, range, k) {
+    const g = dctx.createRadialGradient(sx(ox), sy(oy), 0, sx(ox), sy(oy), range * T);
+    g.addColorStop(0, `rgba(0,0,0,${k})`); g.addColorStop(0.55, `rgba(0,0,0,${k * 0.85})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    dctx.fillStyle = g; polyPath(dctx, ox, oy, pts); dctx.fill();
+  }
+  function cutCircle(ox, oy, r, k) {
+    const g = dctx.createRadialGradient(sx(ox), sy(oy), 0, sx(ox), sy(oy), r * T);
+    g.addColorStop(0, `rgba(0,0,0,${k})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    dctx.fillStyle = g; dctx.beginPath(); dctx.arc(sx(ox), sy(oy), r * T, 0, Math.PI * 2); dctx.fill();
+  }
+
+  function render(now) {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = C.void; ctx.fillRect(0, 0, W, H);
+    if (!grid) return;
+
+    const sh = shake * 8;
+    camX = player.x * T - W / 2 + (Math.random() - 0.5) * sh;
+    camY = player.y * T - H / 2 + (Math.random() - 0.5) * sh;
+
+    // Sol et murs
+    const x0 = Math.max(0, fl(camX / T)), x1 = Math.min(gw - 1, fl((camX + W) / T));
+    const y0 = Math.max(0, fl(camY / T)), y1 = Math.min(gh - 1, fl((camY + H) / T));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const px = sx(x), py = sy(y);
+      if (grid[y][x] === 1) {
+        ctx.fillStyle = C.wall; ctx.fillRect(px, py, T + 0.5, T + 0.5);
+        if (!isWall(x, y + 1)) { ctx.fillStyle = C.wallTop; ctx.fillRect(px, py + T * 0.78, T + 0.5, T * 0.22); }
+      } else {
+        ctx.fillStyle = (x + y) % 2 ? C.stone : C.stone2; ctx.fillRect(px, py, T + 0.5, T + 0.5);
+      }
+    }
+    // Sortie
+    const pulse = 0.6 + 0.4 * Math.sin(now / 300);
+    ctx.fillStyle = C.exit; ctx.globalAlpha = 0.35 + 0.35 * pulse;
+    ctx.fillRect(sx(exit.x) + T * 0.1, sy(exit.y) + T * 0.1, T * 0.8, T * 0.8);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.exit; ctx.lineWidth = 2;
+    ctx.strokeRect(sx(exit.x) + T * 0.1, sy(exit.y) + T * 0.1, T * 0.8, T * 0.8);
+
+    // Chasseurs
+    for (const h of hunters) {
+      ctx.fillStyle = '#2a0f0c'; ctx.beginPath(); ctx.arc(sx(h.x), sy(h.y), R * T, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = C.hunter; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = C.hunter;
+      ctx.beginPath(); ctx.arc(sx(h.x + Math.cos(h.a) * R * 0.55), sy(h.y + Math.sin(h.a) * R * 0.55), R * T * 0.28, 0, Math.PI * 2); ctx.fill();
+    }
+    // Joueur
+    ctx.fillStyle = '#e9e4d6'; ctx.beginPath(); ctx.arc(sx(player.x), sy(player.y), R * T, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = player.lamp ? C.lamp : '#6d6a78';
+    ctx.beginPath(); ctx.arc(sx(player.x + Math.cos(player.a) * R * 0.6), sy(player.y + Math.sin(player.a) * R * 0.6), R * T * 0.3, 0, Math.PI * 2); ctx.fill();
+
+    // Obscurité
+    dctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    dctx.globalCompositeOperation = 'source-over';
+    dctx.clearRect(0, 0, W, H);
+    dctx.fillStyle = 'rgba(3,3,6,0.995)'; dctx.fillRect(0, 0, W, H);
+    dctx.globalCompositeOperation = 'destination-out';
+
+    let pCone = null;
+    if (player.lamp) {
+      const flicker = player.bat < 15 ? 0.75 + Math.random() * 0.25 : 1;
+      pCone = cone(player.x, player.y, player.a, P_RANGE * flicker, 56);
+      cutCone(player.x, player.y, pCone, P_RANGE * flicker, 1);
+      cutCircle(player.x, player.y, 1.3, 0.75);
+    } else {
+      cutCircle(player.x, player.y, 0.9, 0.45);
+    }
+    const hCones = hunters.map(h => cone(h.x, h.y, h.a, H_RANGE, 40));
+    hunters.forEach((h, i) => { cutCone(h.x, h.y, hCones[i], H_RANGE, 0.9); cutCircle(h.x, h.y, 0.6, 0.55); });
+    cutCircle(exit.x + 0.5, exit.y + 0.5, 1.8, 0.55);
+
+    ctx.drawImage(dark, 0, 0, W, H);
+
+    // Teintes de lumière
+    if (pCone) { ctx.fillStyle = 'rgba(255,197,107,0.16)'; polyPath(ctx, player.x, player.y, pCone); ctx.fill(); }
+    hunters.forEach((h, i) => {
+      ctx.fillStyle = h.state === 'chase' ? 'rgba(255,90,69,0.3)' : 'rgba(255,90,69,0.18)';
+      polyPath(ctx, h.x, h.y, hCones[i]); ctx.fill();
+    });
+
+    // Danger : vignette rouge selon le chasseur le plus proche
+    let near = Infinity;
+    for (const h of hunters) near = Math.min(near, Math.hypot(h.x - player.x, h.y - player.y));
+    const danger = Math.max(0, 1 - near / 5) * (reduceMotion ? 0.8 : 0.7 + 0.3 * Math.sin(now / 140)) + alertFlash * 0.5;
+    if (danger > 0.01) {
+      const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
+      g.addColorStop(0, 'rgba(255,90,69,0)'); g.addColorStop(1, `rgba(255,40,30,${Math.min(0.45, danger * 0.4)})`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+
+    // Joystick
+    if (joy) {
+      ctx.strokeStyle = 'rgba(236,235,242,0.25)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 50, 0, Math.PI * 2); ctx.stroke();
+      const dx = joy.x - joy.ox, dy = joy.y - joy.oy, d = Math.hypot(dx, dy), k = d > 50 ? 50 / d : 1;
+      ctx.fillStyle = 'rgba(236,235,242,0.3)';
+      ctx.beginPath(); ctx.arc(joy.ox + dx * k, joy.oy + dy * k, 20, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    if (state === 'play') update(dt);
+    else shake = Math.max(0, shake - dt * 3);
+    render(now);
+    requestAnimationFrame(frame);
+  }
+
+  // Écran d'accueil sur un labyrinthe de démo en fond
+  genMaze(9, 9);
+  player = { x: 1.5, y: 1.5, a: 0.4, lamp: true, bat: 100 };
+  exit = { x: gw - 2, y: gh - 2 };
+  menu();
+  requestAnimationFrame(frame);
+})();
+</script>
