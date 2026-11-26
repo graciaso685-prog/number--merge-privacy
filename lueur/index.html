@@ -70,6 +70,7 @@ details .rules{margin-top:10px}
 #screen button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--muted);font-size:13px;padding:11px 20px}
 #screen .levels button{align-self:stretch;padding:10px 4px 8px;border-radius:12px;background:#17161d;color:var(--ink);border:1.5px solid #2c2b35;display:flex;flex-direction:column;align-items:center;gap:4px;font:800 16px var(--display)}
 #screen .levels button.cur{border-color:var(--lamp)}
+.cs{font:600 10px var(--body);color:#9fe8ff;letter-spacing:.02em;font-variant-numeric:tabular-nums}
 #screen .shop button{padding:8px 14px;font-size:12px}
 #screen .shop button:disabled{opacity:.45;cursor:default}
 #hud .hs{color:#9fe8ff;margin-left:8px}
@@ -133,7 +134,7 @@ details .rules{margin-top:10px}
     { id: 'rose', name: 'Rose', color: '#ff9ad5', price: 120 }
   ];
   // Progression (sauvegardée dans le navigateur pour ce prototype)
-  let save = { unlocked: 1, stars: {}, shards: 0, owned: ['ambre'], lamp: 'ambre' };
+  let save = { unlocked: 1, stars: {}, shards: 0, collected: {}, owned: ['ambre'], lamp: 'ambre' };
   try {
     const raw = localStorage.getItem('lueur-save');
     if (raw) save = Object.assign(save, JSON.parse(raw));
@@ -146,7 +147,7 @@ details .rules{margin-top:10px}
     document.documentElement.style.setProperty('--lamp', l.color);
   }
   const rgba = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
-  let pickups = [], levelShards = 0, spotted = false, par = 60;
+  let pickups = [], levelShards = 0, levelTotal = 0, spotted = false, par = 60;
 
   const rnd = n => Math.floor(Math.random() * n);
   const fl = Math.floor;
@@ -253,6 +254,7 @@ details .rules{margin-top:10px}
   }
 
   // ---------- Niveau ----------
+  function shardQuota(n) { return Math.min(3 + n, 10); } // éclats disponibles au total dans un niveau
   function hunterCount() { return Math.min(1 + Math.floor(level / 2), 5); }
   function patrolSpeed() { return 1.4 + 0.08 * level; }
   function chaseSpeed() { return Math.min(2.4 + 0.12 * level, 3.5); }
@@ -298,10 +300,10 @@ details .rules{margin-top:10px}
       return c;
     };
     pickups = [];
-    const nShards = Math.min(3 + level, 10), nBat = level >= 4 ? 2 : 1;
+    const nShards = Math.max(0, shardQuota(level) - (save.collected[level] || 0)), nBat = level >= 4 ? 2 : 1;
     for (let k = 0; k < nShards; k++) { const c = take(deadEnds.length ? deadEnds : free); if (c !== null) pickups.push({ x: c % gw + 0.5, y: ((c / gw) | 0) + 0.5, type: 'shard' }); }
     for (let k = 0; k < nBat; k++) { const c = take(free); if (c !== null) pickups.push({ x: c % gw + 0.5, y: ((c / gw) | 0) + 0.5, type: 'bat' }); }
-    levelShards = 0; spotted = false;
+    levelShards = 0; levelTotal = pickups.filter(p => p.type === 'shard').length; spotted = false;
     par = Math.ceil(far / P_SPEED * 1.8 + 8); // temps cible pour l'étoile « Rapide »
     time = 0; shake = 0;
     // Aperçu du labyrinthe éclairé : 4 s au niveau 1, puis de moins en moins (min 1,5 s)
@@ -309,7 +311,7 @@ details .rules{margin-top:10px}
     state = 'reveal';
     $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false;
     $('lvl').textContent = 'Niveau ' + level;
-    $('hudShards').textContent = '◆ 0';
+    $('hudShards').textContent = '◆ 0/' + levelTotal;
     updateLampUI();
   }
 
@@ -442,7 +444,7 @@ details .rules{margin-top:10px}
     for (const p of pickups) {
       if (p.taken || Math.hypot(p.x - player.x, p.y - player.y) > 0.55) continue;
       p.taken = true;
-      if (p.type === 'shard') { levelShards++; $('hudShards').textContent = '◆ ' + levelShards; }
+      if (p.type === 'shard') { levelShards++; $('hudShards').textContent = '◆ ' + levelShards + '/' + levelTotal; }
       else player.bat = Math.min(100, player.bat + 40);
       try { navigator.vibrate && navigator.vibrate(20); } catch (_) {}
     }
@@ -477,6 +479,8 @@ details .rules{margin-top:10px}
     const bonus = Math.max(0, got - before) * 5;
     save.stars[level] = Math.max(before, got);
     save.shards += levelShards + bonus;
+    save.collected[level] = (save.collected[level] || 0) + levelShards;
+    const left = Math.max(0, shardQuota(level) - save.collected[level]);
     const done = level;
     level++;
     save.unlocked = Math.max(save.unlocked, level);
@@ -490,6 +494,7 @@ details .rules{margin-top:10px}
         <li><span class="${fast ? 'ok">✓' : 'ko">✗'}</span>Rapide : moins de ${fmt(par)} (toi : ${fmt(fl(time))})</li>
       </ul>
       <p><span class="shards">◆ +${levelShards + bonus}</span> <span class="muted">${levelShards} ramassé${levelShards > 1 ? 's' : ''}${bonus ? `, +${bonus} pour ${bonus > 5 ? 'les nouvelles étoiles' : 'la nouvelle étoile'}` : ''}</span></p>
+      <p class="muted">${left ? `Encore ${left} éclat${left > 1 ? 's' : ''} caché${left > 1 ? 's' : ''} dans ce niveau.` : 'Tous les éclats de ce niveau sont trouvés.'}</p>
       <div class="row"><button type="button" id="next">Niveau ${level}</button><button type="button" class="ghost" id="again">Rejouer le ${done}</button><button type="button" class="ghost" id="home">Menu</button></div>`);
     $('next').onclick = startLevel;
     $('again').onclick = () => { level = done; startLevel(); };
@@ -519,7 +524,7 @@ details .rules{margin-top:10px}
     const total = Object.values(save.stars).reduce((x, y) => x + y, 0);
     let cells = '';
     for (let n = 1; n <= save.unlocked; n++)
-      cells += `<button type="button" data-lvl="${n}" class="${n === save.unlocked ? 'cur' : ''}" aria-label="Niveau ${n}, ${save.stars[n] || 0} étoiles">${n}<span class="stars">${starHTML(save.stars[n] || 0)}</span></button>`;
+      cells += `<button type="button" data-lvl="${n}" class="${n === save.unlocked ? 'cur' : ''}" aria-label="Niveau ${n}, ${save.stars[n] || 0} étoiles">${n}<span class="stars">${starHTML(save.stars[n] || 0)}</span><span class="cs">◆ ${save.collected[n] || 0}/${shardQuota(n)}</span></button>`;
     showScreen(`
       <h1>Lueur</h1>
       <p>Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.</p>
@@ -532,7 +537,7 @@ details .rules{margin-top:10px}
           <dt>Clavier</dt><dd>ZQSD / WASD ou flèches, souris pour viser, Espace pour la lampe.</dd>
           <dt>Chasseurs</dt><dd>Faisceaux rouges. S'ils te voient, ils foncent sur toi.</dd>
           <dt>Batterie</dt><dd>Se vide allumée, se recharge éteinte. Les piles donnent +40 %.</dd>
-          <dt>Éclats</dt><dd>Cachés dans le noir, souvent au fond des impasses. Perdus si tu te fais attraper.</dd>
+          <dt>Éclats</dt><dd>Cachés dans le noir, souvent au fond des impasses. Chaque niveau en a un nombre limité : une fois ramassés, ils ne reviennent pas. Perdus si tu te fais attraper.</dd>
           <dt>Étoiles</dt><dd>Sortie, jamais repéré, et temps cible battu. Chaque nouvelle étoile rapporte 5 éclats.</dd>
         </dl>
       </details>`);
