@@ -1,6 +1,6 @@
 # number--merge-privacy
 
-- `index.html` : jeu de fusion de nombres
+- `index.html` : redirection vers le site Studiom (https://graciaso685-prog.github.io/)
 - `privacy-policy.html`, `delete-data.html` : pages légales
 - `glimmer-maze/` : **Glimmer Maze**, labyrinthe sombre avec lampe à 60° et chasseurs IA
   - `src/game.html` : source du jeu (à modifier)
