@@ -67,6 +67,9 @@ details .rules{margin-top:10px}
 .rules dt{color:var(--ink);font-weight:600}
 .rules dd{margin:0}
 #screen button{align-self:flex-start;font:800 15px var(--display);letter-spacing:.04em;padding:14px 26px;border-radius:999px;border:0;background:var(--lamp);color:#1a1408;cursor:pointer}
+#screen a.linkbtn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font:800 13px var(--display);letter-spacing:.04em;padding:11px 20px;border-radius:999px;background:transparent;color:var(--ink);border:1.5px solid var(--muted)}
+#screen a.linkbtn svg{width:15px;height:15px;flex:none}
+#screen a.linkbtn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 #screen button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--muted);font-size:13px;padding:11px 20px}
 #screen .levels button{align-self:stretch;padding:10px 4px 8px;border-radius:12px;background:#17161d;color:var(--ink);border:1.5px solid #2c2b35;display:flex;flex-direction:column;align-items:center;gap:4px;font:800 16px var(--display)}
 #screen .levels button.cur{border-color:var(--lamp)}
@@ -231,6 +234,7 @@ details .rules{margin-top:10px}
   const plRu = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
   const I18N = {
     fr: {
+      website: `Site Studiom`,
       close: `Fermer`,
       level: n => `Niveau ${n}`, tutorial: `Tutoriel`, spotted: `Repéré !`, lamp: `Lampe`, maze: `Labyrinthe`,
       memorize: `Mémorise le chemin`, skip: n => `${n} s · touche l'écran pour passer`,
@@ -276,6 +280,7 @@ details .rules{margin-top:10px}
       ]
     },
     en: {
+      website: `Studiom website`,
       close: `Close`,
       level: n => `Level ${n}`, tutorial: `Tutorial`, spotted: `Spotted!`, lamp: `Lamp`, maze: `Maze`,
       memorize: `Memorize the path`, skip: n => `${n} s · tap to skip`,
@@ -321,6 +326,7 @@ details .rules{margin-top:10px}
       ]
     },
     es: {
+      website: `Sitio de Studiom`,
       close: `Cerrar`,
       level: n => `Nivel ${n}`, tutorial: `Tutorial`, spotted: `¡Descubierto!`, lamp: `Linterna`, maze: `Laberinto`,
       memorize: `Memoriza el camino`, skip: n => `${n} s · toca para saltar`,
@@ -366,6 +372,7 @@ details .rules{margin-top:10px}
       ]
     },
     pt: {
+      website: `Site da Studiom`,
       close: `Fechar`,
       level: n => `Nível ${n}`, tutorial: `Tutorial`, spotted: `Descoberto!`, lamp: `Lanterna`, maze: `Labirinto`,
       memorize: `Memorize o caminho`, skip: n => `${n} s · toque para pular`,
@@ -411,6 +418,7 @@ details .rules{margin-top:10px}
       ]
     },
     de: {
+      website: `Studiom-Website`,
       close: `Schließen`,
       level: n => `Level ${n}`, tutorial: `Tutorial`, spotted: `Entdeckt!`, lamp: `Lampe`, maze: `Labyrinth`,
       memorize: `Merk dir den Weg`, skip: n => `${n} s · tippen zum Überspringen`,
@@ -456,6 +464,7 @@ details .rules{margin-top:10px}
       ]
     },
     ru: {
+      website: `Сайт Studiom`,
       close: `Закрыть`,
       level: n => `Уровень ${n}`, tutorial: `Обучение`, spotted: `Замечен!`, lamp: `Фонарь`, maze: `Лабиринт`,
       memorize: `Запомни путь`, skip: n => `${n} с · коснись, чтобы пропустить`,
@@ -501,6 +510,7 @@ details .rules{margin-top:10px}
       ]
     },
     zh: {
+      website: `Studiom 官网`,
       close: `关闭`,
       level: n => `第 ${n} 关`, tutorial: `新手教程`, spotted: `被发现了！`, lamp: `手电`, maze: `迷宫`,
       memorize: `记住路线`, skip: n => `${n} 秒 · 点击屏幕跳过`,
@@ -546,6 +556,7 @@ details .rules{margin-top:10px}
       ]
     },
     mn: {
+      website: `Studiom сайт`,
       close: `Хаах`,
       level: n => `${n}-р түвшин`, tutorial: `Сургалт`, spotted: `Илэрлээ!`, lamp: `Чийдэн`, maze: `Төөрдөг байшин`,
       memorize: `Замаа цээжил`, skip: n => `${n} с · алгасахын тулд дэлгэцэн дээр дар`,
@@ -1074,7 +1085,7 @@ details .rules{margin-top:10px}
     showScreen(`
       <h1>Glimmer Maze</h1>
       <p>${t('tagline')}</p>
-      <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button><button type="button" class="ghost ic" id="langBtn">${GLOBE}${t('language')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button></div>
+      <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button><button type="button" class="ghost ic" id="langBtn">${GLOBE}${t('language')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button><a class="linkbtn" href="https://graciaso685-prog.github.io/" target="_blank" rel="noopener">${EXT}${t('website')}</a></div>
       ${annHTML()}
       <p class="muted">${t('summary', save.shards, total, save.unlocked * 3)}</p>
       <div class="levels">${cells}</div>
@@ -1131,6 +1142,7 @@ details .rules{margin-top:10px}
     $('panel').querySelectorAll('[data-equip]').forEach(b => b.onclick = () => { save[slot] = b.dataset.equip; persist(); applyLamp(); shop(); });
     $('back').onclick = menu;
   }
+  const EXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
   const GLOBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
   function annHTML() {
     const a = announce;
