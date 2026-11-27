@@ -91,6 +91,9 @@ details .rules{margin-top:10px}
 #pauseBtn span{width:4px;height:12px;border-radius:1px;background:var(--ink)}
 #pauseBtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 #snack{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);translate:-50% 0;max-width:calc(100% - 32px);box-sizing:border-box;padding:10px 16px;border-radius:999px;background:rgba(14,13,20,.94);border:1px solid #2c2b35;font-size:13px;color:var(--ink);pointer-events:none;z-index:5;text-align:center}
+.ann{position:relative;border:1px solid var(--lamp);background:rgba(255,197,107,.08);border-radius:12px;padding:12px 44px 12px 14px}
+.ann p{margin:0;font-size:14px;line-height:1.5}
+#screen .ann-x{position:absolute;top:6px;right:6px;padding:4px 12px;background:transparent;color:var(--ink);font:400 22px/1 var(--body)}
 #hud .hs{color:#9fe8ff;margin-left:8px}
 #hud .time.late{text-decoration:line-through}
 #tip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 80px);left:50%;translate:-50% 0;width:min(360px,calc(100% - 32px));box-sizing:border-box;padding:12px 14px;border-radius:14px;background:rgba(14,13,20,.9);border:1px solid #2c2b35;pointer-events:none;display:flex;flex-direction:column;gap:4px;transition:border-color .2s}
@@ -213,6 +216,7 @@ details .rules{margin-top:10px}
   const plRu = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
   const I18N = {
     fr: {
+      close: `Fermer`,
       level: n => `Niveau ${n}`, tutorial: `Tutoriel`, spotted: `Repéré !`, lamp: `Lampe`, maze: `Labyrinthe`,
       memorize: `Mémorise le chemin`, skip: n => `${n} s · touche l'écran pour passer`,
       tagline: `Trouve la sortie du labyrinthe. Ta lampe t'éclaire à 60°… et révèle ta position aux chasseurs.`,
@@ -257,6 +261,7 @@ details .rules{margin-top:10px}
       ]
     },
     en: {
+      close: `Close`,
       level: n => `Level ${n}`, tutorial: `Tutorial`, spotted: `Spotted!`, lamp: `Lamp`, maze: `Maze`,
       memorize: `Memorize the path`, skip: n => `${n} s · tap to skip`,
       tagline: `Find the way out of the maze. Your lamp lights up 60° ahead… and gives you away to the hunters.`,
@@ -301,6 +306,7 @@ details .rules{margin-top:10px}
       ]
     },
     es: {
+      close: `Cerrar`,
       level: n => `Nivel ${n}`, tutorial: `Tutorial`, spotted: `¡Descubierto!`, lamp: `Linterna`, maze: `Laberinto`,
       memorize: `Memoriza el camino`, skip: n => `${n} s · toca para saltar`,
       tagline: `Encuentra la salida del laberinto. Tu linterna ilumina 60° al frente… y delata tu posición a los cazadores.`,
@@ -345,6 +351,7 @@ details .rules{margin-top:10px}
       ]
     },
     pt: {
+      close: `Fechar`,
       level: n => `Nível ${n}`, tutorial: `Tutorial`, spotted: `Descoberto!`, lamp: `Lanterna`, maze: `Labirinto`,
       memorize: `Memorize o caminho`, skip: n => `${n} s · toque para pular`,
       tagline: `Encontre a saída do labirinto. Sua lanterna ilumina 60° à frente… e revela sua posição aos caçadores.`,
@@ -389,6 +396,7 @@ details .rules{margin-top:10px}
       ]
     },
     de: {
+      close: `Schließen`,
       level: n => `Level ${n}`, tutorial: `Tutorial`, spotted: `Entdeckt!`, lamp: `Lampe`, maze: `Labyrinth`,
       memorize: `Merk dir den Weg`, skip: n => `${n} s · tippen zum Überspringen`,
       tagline: `Finde den Ausgang des Labyrinths. Deine Lampe leuchtet 60° nach vorn … und verrät dich den Jägern.`,
@@ -433,6 +441,7 @@ details .rules{margin-top:10px}
       ]
     },
     ru: {
+      close: `Закрыть`,
       level: n => `Уровень ${n}`, tutorial: `Обучение`, spotted: `Замечен!`, lamp: `Фонарь`, maze: `Лабиринт`,
       memorize: `Запомни путь`, skip: n => `${n} с · коснись, чтобы пропустить`,
       tagline: `Найди выход из лабиринта. Фонарь светит на 60° вперёд… и выдаёт тебя охотникам.`,
@@ -477,6 +486,7 @@ details .rules{margin-top:10px}
       ]
     },
     zh: {
+      close: `关闭`,
       level: n => `第 ${n} 关`, tutorial: `新手教程`, spotted: `被发现了！`, lamp: `手电`, maze: `迷宫`,
       memorize: `记住路线`, skip: n => `${n} 秒 · 点击屏幕跳过`,
       tagline: `找到迷宫的出口。你的手电只照亮前方 60°……同时也会向猎人暴露你的位置。`,
@@ -521,6 +531,7 @@ details .rules{margin-top:10px}
       ]
     },
     mn: {
+      close: `Хаах`,
       level: n => `${n}-р түвшин`, tutorial: `Сургалт`, spotted: `Илэрлээ!`, lamp: `Чийдэн`, maze: `Төөрдөг байшин`,
       memorize: `Замаа цээжил`, skip: n => `${n} с · алгасахын тулд дэлгэцэн дээр дар`,
       tagline: `Төөрдөг байшингаас гарах гарцыг ол. Чийдэн чинь урд талаа 60° гэрэлтүүлдэг… бас анчдад байршлыг чинь илчилдэг.`,
@@ -582,6 +593,28 @@ details .rules{margin-top:10px}
     $('pauseBtn').setAttribute('aria-label', t('pause'));
     cvs.setAttribute('aria-label', t('maze'));
   }
+  // ---------- Studiom (Firebase) : réglages à distance, annonce, statistiques anonymes ----------
+  // Inactif dans l'aperçu Claude et tant que la configuration Firebase est vide.
+  const FBX = window.StudiomFB && window.StudiomFB.enabled ? window.StudiomFB : null;
+  const RC = { starBonus: 5, batDrain: 2.6, batRecharge: 3.5, hunterSpeed: 1, revealBase: 4 };
+  const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  function applyRC(c) {
+    if (!c) return;
+    const lim = { starBonus: [0, 100], batDrain: [0.5, 10], batRecharge: [0.5, 20], hunterSpeed: [0.5, 1.5], revealBase: [1.5, 10] };
+    for (const k in lim) if (typeof c[k] === 'number' && isFinite(c[k])) RC[k] = Math.min(lim[k][1], Math.max(lim[k][0], c[k]));
+    if (c.prices) for (const cat of Object.values(CATALOG)) for (const it of cat) {
+      if (it.base === undefined) it.base = it.price;
+      const v = c.prices[it.id];
+      if (it.base > 0 && typeof v === 'number' && isFinite(v)) it.price = Math.max(1, Math.round(v));
+    }
+  }
+  applyRC(lsGet('gm-rc'));
+  if (FBX) FBX.get('glimmer/config').then(c => { if (c) { lsSet('gm-rc', c); applyRC(c); } });
+  let announce = lsGet('gm-ann');
+  const stat = f => { if (FBX) FBX.count('glimmerStats', f); };
+  const esc = x => String(x).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
   const rgba = (hex, a) => `rgba(${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)},${a})`;
   let pickups = [], levelShards = 0, levelTotal = 0, spotted = false, par = 60;
   let trail = [], trailT = 0;
@@ -693,8 +726,8 @@ details .rules{margin-top:10px}
   // ---------- Niveau ----------
   function shardQuota(n) { return Math.min(3 + n, 10); } // éclats disponibles au total dans un niveau
   function hunterCount() { return Math.min(1 + Math.floor(level / 2), 5); }
-  function patrolSpeed() { return 1.4 + 0.08 * level; }
-  function chaseSpeed() { return Math.min(2.4 + 0.12 * level, 3.5); }
+  function patrolSpeed() { return (1.4 + 0.08 * level) * RC.hunterSpeed; }
+  function chaseSpeed() { return Math.min(2.4 + 0.12 * level, 3.5) * RC.hunterSpeed; }
 
   function startLevel() {
     view = 'game';
@@ -746,10 +779,11 @@ details .rules{margin-top:10px}
     par = Math.ceil(far / P_SPEED * 1.8 + 8); // temps cible pour l'étoile « Rapide »
     time = 0; shake = 0;
     // Aperçu du labyrinthe éclairé : 4 s au niveau 1, puis de moins en moins (min 1,5 s)
-    revealT = Math.max(1.5, 4 - 0.4 * (level - 1)) + REVEAL_ZOOM;
+    revealT = Math.max(1.5, RC.revealBase - 0.4 * (level - 1)) + REVEAL_ZOOM;
     state = 'reveal';
     $('screen').hidden = true; $('hud').hidden = false; $('lampBtn').hidden = false;
     $('lvl').textContent = t('level', level);
+    stat({ ['starts.l' + level]: 1 });
     trail = [];
     $('hudShards').textContent = '◆ 0/' + levelTotal;
     updateLampUI();
@@ -919,9 +953,9 @@ details .rules{margin-top:10px}
     while (trail.length && time - trail[0].t > 2.5) trail.shift();
 
     if (player.lamp) {
-      player.bat -= 2.6 * dt;
+      player.bat -= RC.batDrain * dt;
       if (player.bat <= 0) { player.bat = 0; player.lamp = false; updateLampUI(); flashBattery(); }
-    } else player.bat = Math.min(100, player.bat + 3.5 * dt);
+    } else player.bat = Math.min(100, player.bat + RC.batRecharge * dt);
 
     for (const p of pickups) {
       if (p.taken || Math.hypot(p.x - player.x, p.y - player.y) > 0.55) continue;
@@ -964,7 +998,7 @@ details .rules{margin-top:10px}
     const fast = time <= par, stealth = !spotted;
     const got = 1 + (stealth ? 1 : 0) + (fast ? 1 : 0);
     const before = save.stars[level] || 0;
-    const bonus = Math.max(0, got - before) * 5;
+    const bonus = Math.max(0, got - before) * RC.starBonus;
     save.stars[level] = Math.max(before, got);
     save.shards += levelShards + bonus;
     save.collected[level] = (save.collected[level] || 0) + levelShards;
@@ -973,6 +1007,7 @@ details .rules{margin-top:10px}
     level++;
     save.unlocked = Math.max(save.unlocked, level);
     persist();
+    stat(Object.assign({ ['wins.l' + done]: 1 }, got === 3 ? { ['stars3.l' + done]: 1 } : {}));
     showScreen(`
       <h1 class="win">${t('winTitle')}</h1>
       <div class="big-stars" aria-label="${t('starsAria', got)}">${starHTML(got)}</div>
@@ -992,6 +1027,7 @@ details .rules{margin-top:10px}
     state = 'over';
     shake = reduceMotion ? 0 : 1;
     sfx('caught');
+    stat({ ['losses.l' + level]: 1 });
     try { navigator.vibrate && navigator.vibrate([120, 60, 200]); } catch (_) {}
     showScreen(`
       <h1 class="lose">${t('loseTitle')}</h1>
@@ -1024,11 +1060,13 @@ details .rules{margin-top:10px}
       <h1>Glimmer Maze</h1>
       <p>${t('tagline')}</p>
       <div class="row"><button type="button" id="play">${save.tutorial ? t('playLevel', save.unlocked) : t('play')}</button><button type="button" class="ghost" id="tutoBtn">${t('tutoBtn')}</button><button type="button" class="ghost" id="shopBtn">${t('shopBtn')}</button><button type="button" class="ghost ic" id="langBtn">${GLOBE}${t('language')}</button><button type="button" class="ghost" id="soundBtn">${soundLabel()}</button></div>
+      ${annHTML()}
       <p class="muted">${t('summary', save.shards, total, save.unlocked * 3)}</p>
       <div class="levels">${cells}</div>
       <details><summary>${t('howTo')}</summary><dl class="rules">${rules}</dl></details>`);
     $('play').onclick = () => { if (!save.tutorial) startTutorial(); else { level = save.unlocked; startLevel(); } };
     $('tutoBtn').onclick = startTutorial;
+    if ($('annClose')) $('annClose').onclick = () => { try { localStorage.setItem('gm-ann-closed', String(announce.id)); } catch (e) {} $('annClose').parentNode.remove(); };
     $('shopBtn').onclick = shop;
     $('panel').querySelectorAll('[data-lvl]').forEach(b => b.onclick = () => { level = +b.dataset.lvl; startLevel(); });
     $('langBtn').onclick = langScreen;
@@ -1072,12 +1110,21 @@ details .rules{margin-top:10px}
       const it = cat.find(x => x.id === b.dataset.buy);
       if (!it || save.shards < it.price) return;
       save.shards -= it.price; save.owned.push(it.id); save[slot] = it.id;
+      stat({ ['purchases.' + it.id]: 1 });
       persist(); applyLamp(); shop();
     });
     $('panel').querySelectorAll('[data-equip]').forEach(b => b.onclick = () => { save[slot] = b.dataset.equip; persist(); applyLamp(); shop(); });
     $('back').onclick = menu;
   }
   const GLOBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+  function annHTML() {
+    const a = announce;
+    if (!a || !a.active || !a.text) return '';
+    try { if (localStorage.getItem('gm-ann-closed') === String(a.id)) return ''; } catch (e) {}
+    const txt = a.text[lang] || a.text.en || a.text.fr || Object.values(a.text).find(Boolean);
+    if (!txt) return '';
+    return `<div class="ann" role="status"><p>${esc(txt)}</p><button type="button" class="ann-x" id="annClose" aria-label="${t('close')}">×</button></div>`;
+  }
   function langScreen() {
     view = 'lang';
     const items = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}"><span lang="${l}">${LANG_NATIVE[l]}</span><span class="code">${l === lang ? '✓' : LANG_LABEL[l]}</span></button>`).join('');
@@ -1179,6 +1226,7 @@ details .rules{margin-top:10px}
   function tutorialDone() {
     state = 'over'; tutorial = false;
     sfx('win');
+    if (!save.tutorial) stat({ tutorialDone: 1 });
     save.tutorial = true; save.shards += levelShards; persist();
     showScreen(`
       <h1 class="win">${t('readyTitle')}</h1>
@@ -1516,6 +1564,8 @@ details .rules{margin-top:10px}
   applyLamp();
   applyLang();
   menu();
+  stat(Object.assign({ sessions: 1, ['langs.' + lang]: 1 }, FBX && FBX.firstToday('gm') ? { players: 1 } : {}));
+  if (FBX) FBX.get('glimmer/announcement').then(a => { announce = a; lsSet('gm-ann', a); if (state === 'menu' && view === 'menu') menu(); });
   requestAnimationFrame(frame);
 })();
 </script>
