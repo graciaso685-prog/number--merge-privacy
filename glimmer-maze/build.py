@@ -11,9 +11,10 @@ manifest = (here / 'manifest.webmanifest').read_bytes()
 version = hashlib.sha1(game.encode() + manifest).hexdigest()[:10]  # change si le jeu ou le manifeste change
 
 head = """<!doctype html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#07070b">
 <meta name="description" content="Find the way out of a dark maze with a 60° lamp, without getting caught by the hunters.">
